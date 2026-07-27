@@ -1,0 +1,5 @@
+Sparse linear algebra kernels are foundational to scientific computing, but also notoriously difficult to accelerate. Particular challenges arise due to their irregular memory access and load imbalance. We investigate these challenges on a spatial dataflow architecture: the Cerebras Wafer-Scale Engine (WSE). Designed for dense neural network workloads, this architecture promises extremely low latency memory access but requires the right algorithm and data placement, presenting a difficult design problem for sparse workloads.
+
+The sparse matrix-vector product (SpMV) is a simple but valuable first case study on the WSE. We present the first algorithm for SpMV on the WSE and a companion performance model that aims to capture algorithmic tradeoffs and enable configuration selection. We evaluate both across various matrix sizes and structures and compare to conventional implementations.
+
+This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and informs the most important directions for future work.
