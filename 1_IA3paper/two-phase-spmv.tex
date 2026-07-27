@@ -9,6 +9,7 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{subcaption}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -52,43 +53,112 @@
 \begin{enumerate}
     \item Luczynski et al presents the chain reduce and multicast broadcast that we use.
     \item They also present performance model
-    \item We implement the same things in Tungsten + Paint and
+    \item We implement the same things in Tungsten + Paint and an updated performance model.
+    \item The updates: 2P factor for broadcast, reticle boundary overhead.
 \end{enumerate}
+
+\subsection{Pairwise Pingpong}
+\begin{enumerate}
+    \item Pairwise pingpong benchmark highlights the immediate neighbor communication latency.
+    \item Also highlights the reticle boundary crossing.
+    \item Experiments show that ramp latency $T_r = 5$
+    \item Experiments: within reticle pingpong = 14 cycles. Across reticle = 14 + 18.
+    \item Takeaway: PE to PE latency = 2, across reticle 9 additional cycles
+\end{enumerate}
+
+\subsection{Broadcast}
+\begin{enumerate}
+    \item We increase the latency term from $P$ in Luczynski et al to $2P$.
+    \item This model is more accurate and also correspons with the 2 cycle PE to PE latency above.
+    \item Also add a reticle overhead term, based on how many reticles are crossed.
+\end{enumerate}
+
+\subsection{Reduction}
+\begin{enumerate}
+    \item The model stays the same except $T_r$ and reticle term
+    \item Matches super well!
+\end{enumerate}
+
+\subsection{Model Performance}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/collectives_scaleB.png}
+        \caption{Evaluation of 1D collectives using a single row of 512 PEs.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/collectives_scaleP.png}
+        \caption{Evaluation of 1D collectives on vector of size 256 (1KB).}
+    \end{subfigure}
+    \caption{Main caption}
+\end{figure}
 
 \section{Two-Phase SpMV}
-\subsection{Sparse Partitionings}
-Need to guarantee row and column locality (RCL)
-\subsection{Dataflow Algorithm}
-Assuming RCL, SpMV can be broken down into our two simple 1D collectives.
-\subsection{Performance Model}
-Based on Lucynski et al but with additional computation modelling (as max and avg nnz per pe increase).
-\section{Evaluation}
-Tunable parameters:
-\begin{itemize}
-    \item sparsity structure (uniform, banded, blocks)
-    \item partitioning (random, blocked, sparsity aware)
-    \item grid size
-    \item can we use the performance  model to inform partitioning and grid size choices
-\end{itemize}
-
-Evaluation space:
-\begin{itemize}
-    \item density (average nnz per PE)
-    \item load imbalance (max nnz)
-    \item how do average and max relate to performance through the performance model extensions
-\end{itemize}
-
-Plots:
 \begin{enumerate}
-    \item Exploring grid size: strong scaling to look at the tradeoff between communication distance and computation density (assume load balance, focus on average density). See Figure \ref{fig:strong-scaling}
-
-    \item Weak scaling: again assuming load balance is satisfied, use the optimal density (found in step 1) and just look at weak scaling.
-    \item Explore load imbalance: how does max nnz inform performance. This will be done using basic block decomposition on the dense blocks matrix class (which has a parameter to tune how much imbalance there is)
-    \item Addressing load imbalance with partitioning choices. Everything up to this point uses a basic blocked partitioning (which likely introduces load imbalance).
-    \item GPU comparison: using the best configurations for the WSE, evaluate at a fixed size across sparsity structures.
-    \item GPU comparison: evaluate across sizes (maybe hint at the good small scale performance relevant for AMG)
+    \item The 1D collectives can be combined for SpMV.
+    \item Distribute matrix nonzeros on the 2D mesh, Broadcast down rows, reduce across columns.
+\end{enumerate}
+\subsection{Sparse Partitionings}
+\begin{enumerate}
+    \item To use the 1D collectives, the matrix must be distributed in a row and column locality (RCL) fashion.
+    \item My results explore a blocked, cyclic, and random partitioning of rows and columns.
+    \item Load imbalance is important.
 \end{enumerate}
 
+\subsection{Dataflow Algorithm}
+\begin{enumerate}
+    \item Assuming RCL, SpMV can be broken down into our two simple 1D collectives.
+    \item Algorithm proceeds in two phases. Everyone waits for all broadcasts to complete (locally) and then contributes to their reductions in order.
+    \item Data indices do not need to be communicated because x values are broadcast in order and reductions are processed in order.
+\end{enumerate}
+\subsection{Modeling SpMV}
+\textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
+\begin{enumerate}
+    \item The 1D collectives model the communication of SpMV
+    \item Whole SpMV communication can be approximated with just 1 reduction (correct P and B) and 1 broadcast
+    \item Vertical bcast requires small reticle adjustment because tehre are fewer reticle
+\end{enumerate}
+
+\subsection{Capturing Compute}
+\begin{enumerate}
+    \item Just a brief note on:
+    \item to understand the contribution of compute, we look at the max of all PE times for compute only, as the limiting factor
+\end{enumerate}
+
+\section{Evaluation}
+\subsection{Model Evaluation}
+\textcolor{red}{BIG IDEA 1. is the performance model accurate}
+\begin{enumerate}
+    \item Plot at 512 PEs for increasing sizes of matrices (maybe number of nonzeros stays fixed? fix compute, look at comm)
+    \item Plot for a couple different matrices as number of PEs varies (can see where the computation dominates and where communication dominates)
+    \item maybe these plots use the randomly generated matrices, no need to talk about load imbalance yet
+\end{enumerate}
+
+\subsection{Layout}
+\begin{enumerate}
+    \item talk about load balance
+    \item different types of matrices: diagonal vs randomly distributed
+\end{enumerate}
+
+\subsection{Configuration Selection}
+\textcolor{red}{
+    BIG IDEAS 2 and 3: how do we make decisions about layout and resources for optimal performance?
+    lower and upper performance bounds for a given matrix/matrix type?
+}
+\begin{enumerate}
+    \item Lower bound is given by the communication model.
+    \item Upper bound is the max of the communication model or the computation cost on the most overloaded PE.
+\end{enumerate}
+\subsection{GPU Comparison}
+\textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
+\begin{enumerate}
+    \item do we include just basic scaling (weak and strong)
+    \item Look at performance across sparsity structures and sizes and compare to GPU (maybe pick some matrices from suite sparse)
+\end{enumerate}
 
 
 \section{Related Work}
@@ -99,11 +169,3 @@ SpMV on other architectures...
 \bibliography{main}
 
 \end{document}
-
-0. what is the performance model and what are its shortcomings
-- communication only model falls short
-1. is the performance model accurate
-2. is the spmv performant
-- compare to GPU
-3. how do we make decisions about layout and resources for optimal performance
-4. lower and upper performance bounds for a given matrix/matrix type?
