@@ -26,7 +26,7 @@ plt.title('1D Collectives Scaling B')
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
-plt.xscale('log')
+plt.xscale('log', base=2)
 plt.legend()
 
 plt.savefig('../figures/collectives_scaleB.png', dpi=300)
@@ -57,7 +57,7 @@ plt.title('1D Collectives Scaling P')
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
-plt.xscale('log')
+plt.xscale('log', base=2)
 plt.legend()
 
 plt.savefig('../figures/collectives_scaleP.png', dpi=300)
