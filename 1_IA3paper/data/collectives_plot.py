@@ -12,12 +12,16 @@ plt.figure(figsize=(10, 6))
 # reduce model: vector_length + 12 * (512 + 1) + 9/64 * 512
 df['reduce-model'] = df['vector length'] + 12 * (512 + 1) + 8 * 9
 df['bcast-model'] =  df['vector length'] + 2 * (512 + 2) + 8 * 9
+df['old-reduce-model'] = df['vector length'] + 12 * (512 + 1) 
+df['old-bcast-model'] =  df['vector length'] +  (512 + 2) 
 
-plt.plot(df['vector length'], df['reduce'], marker='o', linewidth=2, label='Reduce', color='red')
-plt.plot(df['vector length'], df['reduce-model'], linewidth=2, label='Reduce Model', color='red', linestyle='--')
+plt.plot(df['vector length'], df['reduce'] / 1100, marker='o', linewidth=2, label='Reduce', color='red')
+plt.plot(df['vector length'], df['reduce-model'] / 1100, linewidth=2, label='Reduce Model', color='red', linestyle='--')
+plt.plot(df['vector length'], df['old-reduce-model'] / 1100, linewidth=2, label='Luczynski Reduce Model', color='black', linestyle='--')
 
-plt.plot(df['vector length'], df['bcast-tomem'], marker='o', linewidth=2, label='Broadcast', color='blue')
-plt.plot(df['vector length'], df['bcast-model'], linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
+plt.plot(df['vector length'], df['bcast-tomem'] / 1100, marker='o', linewidth=2, label='Broadcast', color='blue')
+plt.plot(df['vector length'], df['bcast-model'] / 1100, linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
+plt.plot(df['vector length'], df['old-bcast-model'] / 1100, linewidth=2, label='Luczynski Broadcast Model', color='black', linestyle='--')
 
 
 plt.xlabel('Vector Length')
@@ -43,12 +47,16 @@ plt.figure(figsize=(10, 6))
 df['reticle-overhead'] = np.floor((df['nPEs'] + 2) / 64) * 9
 df['reduce-model'] = 256 + 12 * (df['nPEs'] + 1) + df['reticle-overhead']
 df['bcast-model'] =  256 + 2 * (df['nPEs'] + 2) + df['reticle-overhead']
+df['old-reduce-model'] = 256 + 12 * (df['nPEs'] + 1)
+df['old-bcast-model'] =  256 + (df['nPEs'] + 2) 
 
-plt.plot(df['nPEs'], df['reduce'], marker='o', linewidth=2, label='Reduce', color='red')
-plt.plot(df['nPEs'], df['reduce-model'], linewidth=2, label='Reduce Model', color='red', linestyle='--')
+plt.plot(df['nPEs'], df['reduce'] / 1100 , marker='o', linewidth=2, label='Reduce', color='red')
+plt.plot(df['nPEs'], df['reduce-model'] / 1100, linewidth=2, label='Reduce Model', color='red', linestyle='--')
+plt.plot(df['nPEs'], df['old-reduce-model'] / 1100, linewidth=2, label='Luczynski Reduce Model', color='black', linestyle='--')
 
-plt.plot(df['nPEs'], df['bcast-tomem'], marker='o', linewidth=2, label='Broadcast', color='blue')
-plt.plot(df['nPEs'], df['bcast-model'], linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
+plt.plot(df['nPEs'], df['bcast-tomem'] / 1100, marker='o', linewidth=2, label='Broadcast', color='blue')
+plt.plot(df['nPEs'], df['bcast-model'] / 1100, linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
+plt.plot(df['nPEs'], df['old-bcast-model']  / 1100, linewidth=2, label='Luczynski Bcast Model', color='black', linestyle='--')
 
 
 plt.xlabel('nPEs')

@@ -47,10 +47,18 @@
 \subsection{1D Collectives}
 \subsection{Matrix-Free Approaches}
 
-\section{1D Collective-based SpMV}
+
+\section{1D Collectives}
+\begin{enumerate}
+    \item Luczynski et al presents the chain reduce and multicast broadcast that we use.
+    \item They also present performance model
+    \item We implement the same things in Tungsten + Paint and
+\end{enumerate}
+
+\section{Two-Phase SpMV}
 \subsection{Sparse Partitionings}
 Need to guarantee row and column locality (RCL)
-\subsection{Two-Phase Dataflow Algorithm}
+\subsection{Dataflow Algorithm}
 Assuming RCL, SpMV can be broken down into our two simple 1D collectives.
 \subsection{Performance Model}
 Based on Lucynski et al but with additional computation modelling (as max and avg nnz per pe increase).
