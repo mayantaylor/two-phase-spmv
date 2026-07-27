@@ -1,0 +1,106 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%Template version as of 6/27/2024
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{A Two-Phase Dataflow Algorithm for SpMV on the Cerebras Wafer-Scale Engine\\
+
+\thanks{Identify applicable funding agency here. If none, delete this.}
+}
+
+\author{\IEEEauthorblockN{Maya Taylor, Luke Olson}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{University of Illinois at Urbana-Champaign}\\
+Champaign, IL USA \\
+mayat4@illinois.edu, lukeo@illinois.edu}}
+
+
+\maketitle
+
+\begin{abstract}
+Sparse linear algebra kernels are foundational to scientific computing, but also notoriously difficult to accelerate. Particular challenges arise due to their irregular memory access and load imbalance. We investigate these challenges on a spatial dataflow architecture: the Cerebras Wafer-Scale Engine (WSE). Designed for dense neural network workloads, this architecture promises extremely low latency memory access but requires the right algorithm and data placement, presenting a difficult design problem for sparse workloads.
+
+The sparse matrix-vector product (SpMV) is a simple but valuable first case study on the WSE. We present the first algorithm for SpMV on the WSE and a companion performance model that aims to capture algorithmic tradeoffs and enable configuration selection. We evaluate both across various matrix sizes and structures and compare to conventional implementations.
+
+This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and informs the most important directions for future work.
+\end{abstract}
+
+\begin{IEEEkeywords}
+
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+\section{Background}
+\subsection{WSE Architecture}
+\subsection{Tungsten and Paint}
+\subsection{1D Collectives}
+\subsection{Matrix-Free Approaches}
+
+\section{1D Collective-based SpMV}
+\subsection{Sparse Partitionings}
+Need to guarantee row and column locality (RCL)
+\subsection{Two-Phase Dataflow Algorithm}
+Assuming RCL, SpMV can be broken down into our two simple 1D collectives.
+\subsection{Performance Model}
+Based on Lucynski et al but with additional computation modelling (as max and avg nnz per pe increase).
+\section{Evaluation}
+Tunable parameters:
+\begin{itemize}
+    \item sparsity structure (uniform, banded, blocks)
+    \item partitioning (random, blocked, sparsity aware)
+    \item grid size
+    \item can we use the performance  model to inform partitioning and grid size choices
+\end{itemize}
+
+Evaluation space:
+\begin{itemize}
+    \item density (average nnz per PE)
+    \item load imbalance (max nnz)
+    \item how do average and max relate to performance through the performance model extensions
+\end{itemize}
+
+Plots:
+\begin{enumerate}
+    \item Exploring grid size: strong scaling to look at the tradeoff between communication distance and computation density (assume load balance, focus on average density). See Figure \ref{fig:strong-scaling}
+
+    \item Weak scaling: again assuming load balance is satisfied, use the optimal density (found in step 1) and just look at weak scaling.
+    \item Explore load imbalance: how does max nnz inform performance. This will be done using basic block decomposition on the dense blocks matrix class (which has a parameter to tune how much imbalance there is)
+    \item Addressing load imbalance with partitioning choices. Everything up to this point uses a basic blocked partitioning (which likely introduces load imbalance).
+    \item GPU comparison: using the best configurations for the WSE, evaluate at a fixed size across sparsity structures.
+    \item GPU comparison: evaluate across sizes (maybe hint at the good small scale performance relevant for AMG)
+\end{enumerate}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{figures/strong-scaling/strong_scaling.png}
+        \caption{Caption}
+        \label{fig:strong-scaling}
+    \end{figure}
+
+\section{Related Work}
+SpMV on other architectures...
+
+\section{Conclusion}
+
+\bibliography{main}
+
+\end{document}
+
+0. what is the performance model and what are its shortcomings
+    - communication only model falls short
+1. is the performance model accurate
+2. is the spmv performant
+    - compare to GPU
+3. how do we make decisions about layout and resources for optimal performance
+4. lower and upper performance bounds for a given matrix/matrix type?
