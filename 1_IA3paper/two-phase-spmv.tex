@@ -41,14 +41,25 @@
 \end{IEEEkeywords}
 
 \section{Introduction}
+\begin{enumerate}
+    \item The broad goal: explore general unstructured sparse operations on dataflow.
+    \item We approach this problem through 1D collectives (easy to model and understand) and spmv (simple but performance very connected to sparsity structure, and easy to map to the 1D collectives)
+\end{enumerate}
+The big ideas:
+\begin{enumerate}
+    \item what is the performance model and what are its shortcomings
+    \item  is the performance model accurate
+    \item  how do we make decisions about layout and resources for optimal performance?
+    \item lower and upper performance bounds for a given matrix/matrix type?
+    \item is the spmv performant? compare to GPU
+\end{enumerate}
 
 \section{Background}
 \subsection{WSE Architecture}
 \subsection{Tungsten and Paint}
-\subsection{1D Collectives}
-\subsection{Matrix-Free Approaches}
-
-
+\subsection{Matrix-Free Approaches for SpMV on Cerebras}
+\subsection{Related Work }
+Spmv on other architectures
 \section{1D Collectives}
 \begin{enumerate}
     \item Luczynski et al presents the chain reduce and multicast broadcast that we use.
@@ -113,35 +124,40 @@
 \begin{enumerate}
     \item Assuming RCL, SpMV can be broken down into our two simple 1D collectives.
     \item Algorithm proceeds in two phases. Everyone waits for all broadcasts to complete (locally) and then contributes to their reductions in order.
+    \item Note that this is NOT bulk-synchronous. Reductions near the top of the grid can begin before those further down.
     \item Data indices do not need to be communicated because x values are broadcast in order and reductions are processed in order.
 \end{enumerate}
-\subsection{Modeling SpMV}
+\section{Modeling SpMV}
 \textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
+\subsection{Communication}
 \begin{enumerate}
     \item The 1D collectives model the communication of SpMV
-    \item Whole SpMV communication can be approximated with just 1 reduction (correct P and B) and 1 broadcast
+    \item Whole SpMV communication can be approximated with just 1 reduction (correct P and B) and 1 broadcast. Think of this as matching the broadcast from top right down to bottom right, and then the reduction along the whole bottom row. This is the largest comm distance and the limiting factor.
     \item Vertical bcast requires small reticle adjustment because tehre are fewer reticle
 \end{enumerate}
 
-\subsection{Capturing Compute}
+\subsection{Compute}
 \begin{enumerate}
-    \item Just a brief note on:
-    \item to understand the contribution of compute, we look at the max of all PE times for compute only, as the limiting factor
+    \item record local compute time on every PE. Take the max.
+    \item In practice, all compute does not happen perfectly in parallel. This is an approximate understanding of compute.
 \end{enumerate}
 
 \section{Evaluation}
 \subsection{Model Evaluation}
+
 \textcolor{red}{BIG IDEA 1. is the performance model accurate}
 \begin{enumerate}
-    \item Plot at 512 PEs for increasing sizes of matrices (maybe number of nonzeros stays fixed? fix compute, look at comm)
-    \item Plot for a couple different matrices as number of PEs varies (can see where the computation dominates and where communication dominates)
-    \item maybe these plots use the randomly generated matrices, no need to talk about load imbalance yet
+    \item \textcolor{green}{TODO: Plot for a couple different matrices as number of PEs varies (can see where the computation dominates and where communication dominates)}
+    \item these plots use the randomly generated matrices, no need to talk about load imbalance yet
 \end{enumerate}
 
-\subsection{Layout}
+\subsection{Matrix Layout}
 \begin{enumerate}
     \item talk about load balance
-    \item different types of matrices: diagonal vs randomly distributed
+    \item figure out what is the max nnz we support (limited by the 48KB local memory)
+    \item pick some matrices from suitesparse with different structure
+    \item do analysis of theoretical load imbalance under the three layout schemes: blocked, cyclic, random
+    \item look at actual performance under the three schemes
 \end{enumerate}
 
 \subsection{Configuration Selection}
@@ -157,12 +173,15 @@
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
 \begin{enumerate}
     \item do we include just basic scaling (weak and strong)
-    \item Look at performance across sparsity structures and sizes and compare to GPU (maybe pick some matrices from suite sparse)
+    \item Look at performance across sparsity structures and sizes and compare to GPU (see suite sparse selections in figure \ref{fig:suite-sparse-scatter})
 \end{enumerate}
 
-
-\section{Related Work}
-SpMV on other architectures...
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/suite_sparse_scatter.png}
+    \caption{Main caption}
+    \label{fig:suite-sparse-scatter}
+\end{figure}
 
 \section{Conclusion}
 

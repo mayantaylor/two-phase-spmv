@@ -1,0 +1,13 @@
+name,id,nrows,ncols,nnz,category,
+MAWI/mawi_201512020030,2802,68863315,68863315,143414960,Undirected Weighted Graph,
+LAW/indochina-2004,2451,7414866,7414866,194109311,Directed Graph,
+VLSI/stokes,2845,11449533,11449533,349321980,Semiconductor Process Problem,
+SNAP/twitter7,2796,41652230,41652230,1468365182,Directed Graph,
+DIMACS10/delaunay_n23,2478,8388608,8388608,50331568,Undirected Graph
+DIMACS10/kron_g500-logn17,2490,131072,131072,10228360,Undirected Multigraph
+Bourchtein/atmosmodl,2267,1489752,1489752,10319760,Computational Fluid Dynamics Problem
+GHS_psdef/crankseg_1,1257,52804,52804,10614210,Structural Problem
+Dziekonski/dielFilterV2real,2386,1157456,1157456,48538952,Electromagnetics Problem
+Muite/Chebyshev4,1867,68121,68121,5377761,Structural Problem
+VLSI/radiation,2839,223104,223104,5526637,Semiconductor Device Problem
+SNAP/com-Youtube,2783,1134890,1134890,5975248,Undirected Graph With Communities
