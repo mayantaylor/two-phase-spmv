@@ -171,9 +171,16 @@ Spmv on other architectures
 \end{enumerate}
 \subsection{GPU Comparison}
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
+1. the impact of structure (same number of nnz)
+2. suite sparse performance
+both runtime and throughput plots (maybe throughput put Triad throughput as comparison)
 \begin{enumerate}
     \item do we include just basic scaling (weak and strong)
-    \item Look at performance across sparsity structures and sizes and compare to GPU (see suite sparse selections in figure \ref{fig:suite-sparse-scatter})
+    \item GPU comparison is a datapoint, not 'comparison'. Other factors like writing custom gpu kernels and power draw
+    \item Look at performance across sparsity structures and sizes and compare to GPU
+    \item suite sparse selections in figure \ref{fig:suite-sparse-scatter}
+    \item use default cusparse CSR and collect all the cusparse configurations
+    \item diagonal, tridiagonal, banded
 \end{enumerate}
 
 \begin{figure}[htbp]
