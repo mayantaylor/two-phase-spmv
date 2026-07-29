@@ -66,33 +66,24 @@ def plot_matrices(df: pd.DataFrame, output_path: str) -> None:
     ax.legend(loc="best", fontsize=8)
 
     fig.tight_layout()
-    fig.savefig(output_path, dpi=150)
-    print(f"Saved plot to {output_path}")
+    fig.savefig(output_path, dpi=150, format='pdf')
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "csv_path", nargs="?", default="matrices.csv",
-        help="Path to the CSV file (default: matrices.csv)",
-    )
-    parser.add_argument(
-        "-o", "--output", default="../figures/suite_sparse_scatter.png",
-        help="Output image path (default: suite_sparse_scatter.png)",
-    )
-    args = parser.parse_args()
+    csv_path="suite_sparse_matrices.csv"
+    output="../figures/suite_sparse_matrices.pdf"
 
     try:
-        df = load_matrices(args.csv_path)
+        df = load_matrices(csv_path)
     except FileNotFoundError:
-        print(f"Error: could not find '{args.csv_path}'", file=sys.stderr)
+        print(f"Error: could not find '{csv_path}'", file=sys.stderr)
         sys.exit(1)
 
     if df.empty:
         print("No valid matrix rows found in the CSV.", file=sys.stderr)
         sys.exit(1)
 
-    plot_matrices(df, args.output)
+    plot_matrices(df, output)
 
 
 if __name__ == "__main__":

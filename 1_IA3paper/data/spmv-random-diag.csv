@@ -1,0 +1,6 @@
+name,input_file,bundle,nrows,ncols,mapping,seed,enabled,NROWS,XPERCOL,NCOLS,ROWSPERPE,NNZ_CAPACITY,SEED,DENSITY,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
+diag.cyclic.512,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/diag.32768.01.npz,spmv-eval,512,512,cyclic,4,1,512,64,512,64,64,1,0.01,9994.0,8830.0,2358.0,1135.0,True,ok,,,,,
+diag.blocked.512,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/diag.32768.01.npz,spmv-eval,512,512,blocked,4,1,512,64,512,64,4096,1,0.01,82495.0,74857.0,74926.0,1135.0,True,ok,,,,,
+diag.random.512,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/diag.32768.01.npz,spmv-eval,512,512,random,4,1,512,64,512,64,74,1,0.01,9871.0,9323.0,2515.0,1420.0,True,ok,,,,,
+diag.cyclic.512,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/diag.65536.01.npz,spmv-eval,512,512,cyclic,4,1,512,128,512,128,255,1,0.01,14730,10161.0,6948.0,4539.0
+diag.random.512,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/diag.65536.01.npz,spmv-eval,512,512,random,4,1,512,128,512,128,224,1,0.01,13881.0,13165.0,6366.0,4212.0,True,ok,,,,,

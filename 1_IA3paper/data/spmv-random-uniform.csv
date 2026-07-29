@@ -1,0 +1,18 @@
+name,input_file,bundle,nrows,ncols,mapping,seed,enabled,NROWS,XPERCOL,NCOLS,ROWSPERPE,NNZ_CAPACITY,SEED,DENSITY,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
+rand.32768,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.32768.01.npz,spmv-eval,512,512,blocked,4,1,512,64,512,64,74,1,0.01,10014.0,9394.0,2512.0,1418.0,True,ok,,,,,
+rand.32768,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.32768.01.npz,spmv-eval,256,256,blocked,4,1,256,128,256,128,223,1,0.01,10067.0,7684.0,6341.0,4402.0,True,ok,,,,,
+rand.32768,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.32768.01.npz,spmv-eval,128,128,blocked,4,1,128,256,128,256,756,1,0.01,19875.0,19169.0,18249.0,14425.0,True,ok,,,,,
+rand.32768,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.32768.01.npz,spmv-eval,64,64,blocked,4,1,64,512,64,512,2819,1,0.01,61095.0,59682.0,60002.0,52964.0,True,ok,,,,,
+rand.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.65536.01.npz,spmv-eval,512,512,blocked,4,1,512,128,512,128,221,1,0.01,13912.0,12858.0,6297.0,4274.0,True,ok,,,,,
+rand.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.65536.01.npz,spmv-eval,256,256,blocked,4,1,256,256,256,256,759,1,0.01,21909.0,19416.0,18304.0,14652.0,True,ok,,,,,
+rand.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.65536.01.npz,spmv-eval,128,128,blocked,4,1,128,512,128,512,2798,1,0.01,62095.0,60496.0,59623.0,52833.0,True,ok,,,,,
+rand.131072,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/rand.131072.01.npz,spmv-eval,512,512,blocked,4,1,512,256,512,256,771,1,0.01,26232.0,24355.0,18522.0,14436.0
+rand.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/1percent_s1.00.npz,spmv-eval,512,512,blocked,4,1,512,128,512,128,223,1,.01,13916.0,12839.0,6342.0,4203.0
+rand.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/1percent_s1.00.npz,spmv-eval,256,256,blocked,4,1,256,256,256,256,771,1,.01,22303.0, 19395.0, 8518.0, 14460.0
+rand.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/1percent_s1.00.npz,spmv-eval,128,128,blocked,4,1,128,512,128,512,2833,1,.01,61692.0.0,60614.0,60254.0,52979.0,True,ok,,,,,
+rand.001.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/A_s1.00.npz,spmv-eval,512,512,blocked,4,1,512,128,512,128,38,1,0.001,10683.0,10351.0,2936.0,2261.0,True,ok
+rand.001.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/A_s1.00.npz,spmv-eval,256,256,blocked,4,1,256,256,256,256,101,1,0.001,10603.0,8982.0,6299.0,5041.0,True,ok
+rand.001.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/A_s1.00.npz,spmv-eval,128,128,blocked,4,1,128,512,128,512,324,1,0.001,17539.0,17069.0,14826.0,12535.0,True,ok
+rand.0001.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/spectrum_s1.00.npz,spmv-eval,512,512,blocked,4,1,512,128,512,128,11,1,0.0001,10262.0,10088.0,2432.0,2223.0,True,ok
+rand.0001.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/spectrum_s1.00.npz,spmv-eval,256,256,blocked,4,1,256,256,256,256,20,1,0.0001,9220.0,8329.0,4780.0,4398.0,True,ok
+rand.0001.65536,/home/maytayl/groc-scratch-summer26/spmv/spmv32/matrices/spectrum_s1.00.npz,spmv-eval,128,128,blocked,4,1,128,512,128,512,52,1,0.0001,13089.0,12742.0,9737.0,8883.0,True,ok
