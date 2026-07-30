@@ -122,8 +122,8 @@ def _convert_mm_targz_to_npz(targz_path: str, name: str, out_path: str):
             mtx_candidates[0],
         )
 
-        matrix = scipy.io.mmread(mtx_path)
-        matrix = scipy.sparse.csr_matrix(matrix)
+        matrix = scipy.io.mmread(mtx_path, spmatrix=False)
+        matrix = scipy.sparse.csr_matrix(matrix)      
         scipy.sparse.save_npz(out_path, matrix)
 
 
