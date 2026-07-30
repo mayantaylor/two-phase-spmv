@@ -119,7 +119,6 @@ def load_and_run_matrices(paths: list[str], cpu_trials, gpu_trials, np_dtype: np
         A = sp.load_npz(path)
         A = A.tocsr().astype(np_dtype)
         
-        print("A has ", A.nnz, "nonzeros")
         
         cpu_stats = benchmark_cpu(A, n_trials=cpu_trials)
         gpu_stats = benchmark_cusparse(A, n_trials=gpu_trials) if HAVE_CUPY else None

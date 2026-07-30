@@ -1,1 +1,12 @@
+matrices/atmosmodl.npz
+matrices/Chebyshev4.npz
+matrices/com-Youtube.npz
+matrices/crankseg_1.npz
+matrices/delaunay_n23.npz
+matrices/dielFilterV2real.npz
+matrices/indochina-2004.npz
+matrices/kron_g500-logn17.npz
+matrices/mawi_201512020030.npz
+matrices/radiation.npz
 matrices/stokes.npz
+matrices/twitter7.npz
