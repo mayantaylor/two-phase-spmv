@@ -39,7 +39,7 @@ def plot_matrices(df: pd.DataFrame, output_path: str) -> None:
         subset = df[df["category"] == cat] if cat is not None else df
         ax.scatter(
             subset["nrows"],
-            subset["nnz"],
+            subset["nnz"]/subset["nrows"],
             label=cat if cat is not None else "matrices",
             color=colors[i % len(colors)],
             s=80,
@@ -51,7 +51,7 @@ def plot_matrices(df: pd.DataFrame, output_path: str) -> None:
             for _, row in subset.iterrows():
                 ax.annotate(
                     row["name"],
-                    (row["nrows"], row["nnz"]),
+                    (row["nrows"], row["nnz"]/row["nrows"]),
                     textcoords="offset points",
                     xytext=(6, 4),
                     fontsize=8,
@@ -60,7 +60,7 @@ def plot_matrices(df: pd.DataFrame, output_path: str) -> None:
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("Dimension (nrows)")
-    ax.set_ylabel("nnz count")
+    ax.set_ylabel("Nonzeros per Row")
     ax.set_title("Matrix nnz vs. dimension")
     ax.grid(True, which="both", linestyle="--", alpha=0.4)
     ax.legend(loc="best", fontsize=8)
