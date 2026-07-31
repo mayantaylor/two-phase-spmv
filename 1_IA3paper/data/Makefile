@@ -1,7 +1,7 @@
 
 FIGDIR := ../figures
 
-FIGURES := collectives_scaleB collectives_scaleP spmv-random-uniform suite_sparse_matrices
+FIGURES := collectives_scaleB collectives_scaleP spmv-random-uniform suite_sparse_matrices suite-sparse-manifest073026
 TARGETS := $(addprefix $(FIGDIR)/,$(addsuffix .pdf,$(FIGURES)))
 
 .PHONY: all clean
