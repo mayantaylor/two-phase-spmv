@@ -25,7 +25,7 @@ df = df.groupby('matrix_name').agg({
 df = df.sort_values('rows')
 
 # Merge with results_df to include comparison data
-df = df.merge(results_df[['matrix_name', 'max_time']], 
+df = df.merge(results_df[['matrix_name', 'max_time', 'nnz_max_capacity', 'nrows', 'ncols']], 
               on='matrix_name', how='left', suffixes=('', '_results'))
 
 df['max_time'] = pd.to_numeric(df['max_time'], errors='coerce') / 1000000 # convert from cycles to ms
@@ -34,7 +34,7 @@ df['max_time'] = pd.to_numeric(df['max_time'], errors='coerce') / 1000000 # conv
 df['throughput'] = df['nnz'] / df['gpu_mean_ms']
 
 # Create figure with subplots
-fig, ax1 = plt.subplots(figsize=(24, 12))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 12))
 
 x = np.arange(len(df))
 width = 0.35
@@ -43,27 +43,65 @@ df['speedup'] = df['gpu_mean_ms'] / df['max_time']
 
 # Compute bar heights relative to 1
 heights = df['speedup'] - 1
+df['nnz_capacity_ratio'] = df['nnz_max_capacity'] / (df['nnz'] / (df['nrows'] * df['ncols']))
 
-# Bars rooted at 1
+fig, ax1 = plt.subplots(figsize=(12, 5))
+ax2 = ax1.twinx()
+
+# Left axis: speedup bars rooted at 1
+heights = df['speedup'] - 1
 ax1.bar(
     x,
     heights,
-    width,
     bottom=1,
-    label='WSE Speedup',
-    color='blue',
-    alpha=0.7
+    width=0.8,
+    color='tab:blue',
+    alpha=0.7,
+    label='WSE Speedup'
 )
+ax1.axhline(1, color='red', linestyle='--', linewidth=1)
 
-# Reference line at 1
-ax1.axhline(y=1, color='red', linestyle='--', linewidth=1)
+ax1.set_ylabel("WSE Speedup", color='tab:blue')
+ax1.tick_params(axis='y', labelcolor='tab:blue')
 
-ax1.set_xlabel('Matrix')
-ax1.set_ylabel('WSE Speedup')
-ax1.set_title('GPU Runtimes Comparison (sorted by rows)')
+# Example left limits
+ax1.set_ylim(0, max(df['speedup'].max(), 1) + 0.5)
+
+# Fractional location of y=1 on left axis
+y1min, y1max = ax1.get_ylim()
+frac = (1 - y1min) / (y1max - y1min)
+
+# Right axis: whatever you're plotting (e.g., runtime)
+ax2.plot(
+    x,
+    df['nnz_capacity_ratio'],
+    color='tab:orange',
+    marker='o',
+    linewidth=2,
+    label='NNZ Capacity Ratio'
+)
+ax2.set_ylabel("NNZ Capacity Ratio", color='tab:orange')
+
+ax2.tick_params(axis='y', labelcolor='tab:orange')
+rmin = min(df['nnz_capacity_ratio'].min(), 1)
+rmax = max(df['nnz_capacity_ratio'].max(), 1)
+
+# Compute new lower limit so that 1 sits at the same fraction
+new_rmin = (frac * rmax - 1) / (frac - 1)
+
+ax2.set_ylim(new_rmin, rmax)
+
+# Shared x-axis
+ax1.set_xlabel("Matrix")
 ax1.set_xticks(x)
 ax1.set_xticklabels(df['matrix_name'], rotation=45, ha='right')
-ax1.legend()
+
+# Combine legends from both axes
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+
+plt.tight_layout()
 
 plt.tight_layout()
 os.makedirs('../figures', exist_ok=True)
