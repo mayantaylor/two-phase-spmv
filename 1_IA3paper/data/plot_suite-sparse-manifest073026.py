@@ -83,8 +83,7 @@ mapping_legend = [
     for mapping in unique_mappings
 ]
 
-
-
+plt.legend(handles=mapping_legend, title="Mapping")
 plt.tight_layout()
 plt.savefig("../figures/suite-sparse-manifest073026.pdf", format="pdf", dpi=300)
 plt.show()
