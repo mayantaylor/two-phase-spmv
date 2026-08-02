@@ -10,6 +10,8 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{tabularx}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -142,33 +144,71 @@ Spmv on other architectures
     \item In practice, all compute does not happen perfectly in parallel. This is an approximate understanding of compute.
 \end{enumerate}
 
+\section{Experimental Setup}
+To evaluate our algorithm for SpMV, we use both randomly generated matrices and a selection of matrices from SuiteSparse.
+
+\input{data/suite_sparse_matrices.tex}
+
 \section{Evaluation}
 \subsection{Model Evaluation}
-
 \textcolor{red}{BIG IDEA 1. is the performance model accurate}
+
+Initial model evaluation is performed using randomly generated matrices.
+The goal is to evaluate the accuracy of the performance model under the assumption of uniformly distributed nonzeros, and associated relative load balance.
+Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices.
 \begin{enumerate}
     \item \textcolor{green}{TODO: Plot for a couple different matrices as number of PEs varies (can see where the computation dominates and where communication dominates)}
     \item these plots use the randomly generated matrices, no need to talk about load imbalance yet
 \end{enumerate}
 
 \subsection{Matrix Layout}
-\begin{enumerate}
-    \item talk about load balance
-    \item figure out what is the max nnz we support (limited by the 48KB local memory)
-    \item pick some matrices from suitesparse with different structure
-    \item do analysis of theoretical load imbalance under the three layout schemes: blocked, cyclic, random
-    \item look at actual performance under the three schemes
-\end{enumerate}
+\label{sec:layout}
+
+In addition to the uniformly random matrices, we evaluate our algorithm on a selection of real world matrices from SuiteSparse.
+These matrices introduce structure which produces load imbalance under the basic 2D blocked decomposition.
+
+Important note: We are limited by the 48 KB of local memory, and after stack and other variable allocation, this correlates to a max NNZ per pe of around 8000. This is a key limiting factor determining which matrices and layouts we can evaluate. A similar constraint applys to the number of matrix rows per PE row (or the size of the vector input and output), which further restricts our testing space.
+Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to the hardware, and only under certain mapping schemes.
+
+Figure \ref{fig:suite-sparse-parameters} shows the parameter space of our suite sparse selection for three different mappings.
+
+\textcolor{green}{TODO: analysis of max to average nnz under each scheme}
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/suite_sparse_manifest.pdf}
+    \caption{Parameter space evalutation of suite-sparse selection.}
+    \label{fig:suite-sparse-parameters}
+\end{figure}
 
 \subsection{Configuration Selection}
 \textcolor{red}{
     BIG IDEAS 2 and 3: how do we make decisions about layout and resources for optimal performance?
     lower and upper performance bounds for a given matrix/matrix type?
 }
+
+Choose mapping based on best NNZ to average ratio.
+
 \begin{enumerate}
     \item Lower bound is given by the communication model.
     \item Upper bound is the max of the communication model or the computation cost on the most overloaded PE.
 \end{enumerate}
+
+Breakdown of performance by phase and by communication vs computation in Figure \ref{fig:suite-sparse-comm-model}
+
+\textcolor{green}{TODO: analysis of max comp time too! in this figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/suite_sparse_comm_model.pdf}
+    \caption{Performance evaluation of SpMV with model breakdown on the WSE for various matrices from the SuiteSparse collection.}
+    \label{fig:suite-sparse-comm-model}
+\end{figure}
+
+
 \subsection{GPU Comparison}
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
 1. the impact of structure (same number of nnz)
@@ -183,12 +223,13 @@ both runtime and throughput plots (maybe throughput put Triad throughput as comp
     \item diagonal, tridiagonal, banded
 \end{enumerate}
 
-\begin{figure}[htbp]
+\begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/suite_sparse_matrices.pdf}
-    \caption{Main caption}
-    \label{fig:suite-sparse-scatter}
+    \includegraphics[width=\linewidth]{figures/suite_sparse_gpu_comparison.pdf}
+    \caption{Speedup of WSE SpMV over GPU SpMV for various matrices from the SuiteSparse collection.}    \label{fig:suite-sparse-gpu-comp}
 \end{figure}
+
+
 
 \section{Conclusion}
 
