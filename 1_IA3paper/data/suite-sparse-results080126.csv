@@ -1,0 +1,8 @@
+name,artifact_dir,nrows,ncols,matrix_nrows,matrix_ncols,nnz_max_capacity,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
+Chebyshev4.073026.512x512.cyclic,/home/maytayl/matrices/cache/Chebyshev4.073026.512x512.cyclic,512,512,68121,68121,281,13850.0,10371.0,0.0,0.0,True,ok,,,,,
+atmosmodl.073026.512x512.cyclic,/home/maytayl/matrices/cache/atmosmodl.073026.512x512.cyclic,512,512,1489752,1489752,2910,136276.0,132323.0,0.0,0.0,
+dielFilterV2real.073026.512x512.cyclic,/home/maytayl/matrices/cache/dielFilterV2real.073026.512x512.cyclic,512,512,1157456,1157456,2435,112422.0,102387.0,0.0,0.0,
+radiation.073026.512x512.cyclic,/home/maytayl/matrices/cache/radiation.073026.512x512.cyclic,512,512,223104,223104,488,27401.0,19795.0,0.0,0.0,
+com-Youtube.073026.512x512.cyclic,/home/maytayl/matrices/cache/com-Youtube.073026.512x512.cyclic,512,512,1134890,1134890,132,53957.0,52605.0,0.0,0.0,True,ok,,,,,
+crankseg_1.073026.512x512.cyclic,/home/maytayl/matrices/cache/crankseg_1.073026.512x512.cyclic,512,512,52804,52804,157,12634.0,10238.0,0.0,0.0,
+kron_g500-logn17.073026.512x512.cyclic,/home/maytayl/matrices/cache/kron_g500-logn17.073026.512x512.cyclic,512,512,131072,131072,157,14843.0,13584.0,0.0,0.0,True,ok,,,,,
