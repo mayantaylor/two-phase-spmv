@@ -11,8 +11,6 @@ The CSV is expected to have (at least) these columns:
     name, id, nrows, ncols, nnz, category
 Blank/incomplete rows are skipped automatically.
 """
-
-import argparse
 import sys
 
 import pandas as pd
@@ -30,7 +28,7 @@ def load_matrices(csv_path: str) -> pd.DataFrame:
 
 
 def plot_matrices(df: pd.DataFrame, output_path: str) -> None:
-    fig, ax = plt.subplots(figsize=(9, 6))
+    fig, ax = plt.subplots(figsize=(14, 10))
 
     categories = df["category"].unique() if "category" in df.columns else [None]
     colors = plt.cm.tab10.colors
@@ -54,16 +52,16 @@ def plot_matrices(df: pd.DataFrame, output_path: str) -> None:
                     (row["nrows"], row["nnz"]/row["nrows"]),
                     textcoords="offset points",
                     xytext=(6, 4),
-                    fontsize=8,
+                    fontsize=16,
                 )
 
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("Dimension (nrows)")
-    ax.set_ylabel("Nonzeros per Row")
-    ax.set_title("Matrix nnz vs. dimension")
+    ax.set_xlabel("Dimension (nrows)", fontsize=16)
+    ax.set_ylabel("Nonzeros per Row", fontsize=16)
+    ax.set_title("Matrix nnz vs. dimension", fontsize=16)
     ax.grid(True, which="both", linestyle="--", alpha=0.4)
-    ax.legend(loc="best", fontsize=8)
+    ax.legend(loc="best", fontsize=16)
 
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, format='pdf')

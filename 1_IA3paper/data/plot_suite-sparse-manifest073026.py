@@ -89,10 +89,23 @@ mapping_color_map = {
 }
 df["color"] = df["mapping"].map(mapping_color_map)
 
+
+# Add vertical divider between atmosmodl and delaunay_n23
+split_matrix = "atmosmodl.npz"
+
+if split_matrix in x_map:
+    split_x = x_map[split_matrix] + 0.5
+    plt.axvline(
+        x=split_x,
+        color="black",
+        linewidth=1.5,
+        linestyle="-",
+        zorder=1
+    )
+    
 # Plot
 plt.figure(figsize=(14, 8))
 
-plt.axhline(y=7800, color="black", linestyle="--", linewidth=1)
 
 # Base layer: all points
 plt.scatter(
@@ -117,6 +130,11 @@ plt.scatter(
     label="Has results"
 )
 
+# Threshold lines
+plt.axhline(y=7800, color="black", linestyle="--", linewidth=1, zorder=1)
+plt.axvline(x=split_x, color="black", linewidth=1.5, zorder=1)
+
+
 plt.xticks(range(len(all_matrix_files)), x_labels, rotation=45, ha="right")
 plt.xlabel("Matrix File")
 plt.ylabel("NNZ_CAPACITY")
@@ -124,6 +142,8 @@ plt.yscale('log')
 plt.title("Mappings by Matrix File and NNZ_CAPACITY")
 plt.grid(True, linestyle="--", alpha=0.3)
 plt.xlim(-0.5, len(all_matrix_files) - 0.5)
+
+
 
 # Legend
 mapping_legend = [
@@ -134,6 +154,10 @@ mapping_legend = [
 mapping_legend.append(Line2D([0], [0], marker='*', color='w', label="Has results",
                              markerfacecolor='gray', markersize=15, markeredgecolor='red', markeredgewidth=2))
 
+
 plt.legend(handles=mapping_legend, title="Mapping")
 plt.tight_layout()
+
+
+
 plt.savefig("../figures/suite_sparse_manifest.pdf", format="pdf", dpi=300)
