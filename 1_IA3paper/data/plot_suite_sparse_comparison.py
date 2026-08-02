@@ -27,6 +27,7 @@ df = df.sort_values('rows')
 # Merge with results_df to include comparison data
 df = df.merge(results_df[['matrix_name', 'max_time', 'nnz_max_capacity', 'nrows', 'ncols']], 
               on='matrix_name', how='left', suffixes=('', '_results'))
+df = df.dropna(subset=['max_time'])
 
 df['max_time'] = pd.to_numeric(df['max_time'], errors='coerce') / 1000000 # convert from cycles to ms
 
@@ -72,7 +73,7 @@ y1min, y1max = ax1.get_ylim()
 frac = (1 - y1min) / (y1max - y1min)
 
 # Right axis: whatever you're plotting (e.g., runtime)
-ax2.plot(
+ax2.scatter(
     x,
     df['nnz_capacity_ratio'],
     color='tab:orange',
@@ -89,7 +90,7 @@ rmax = max(df['nnz_capacity_ratio'].max(), 1)
 # Compute new lower limit so that 1 sits at the same fraction
 new_rmin = (frac * rmax - 1) / (frac - 1)
 
-ax2.set_ylim(new_rmin, rmax)
+ax2.set_ylim(new_rmin, rmax + 5)
 
 # Shared x-axis
 ax1.set_xlabel("Matrix")
