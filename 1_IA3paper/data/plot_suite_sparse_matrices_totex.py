@@ -8,6 +8,8 @@ df = df.dropna(axis=1, how='all')
 # Remove ncols column
 df = df.drop(columns=["ncols"])
 
+df['nnz_per_row'] = df['nnz'] / df['nrows']
+
 # Sort by number of rows (ascending)
 df = df.sort_values(by="nrows", ascending=True)
 
