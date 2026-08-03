@@ -17,10 +17,10 @@ $(FIGDIR)/%.pdf: %.csv plot_%.py | $(FIGDIR)
 $(FIGDIR)/suite_sparse_manifest.pdf: suite-sparse-manifest073026.csv suite-sparse-results080326-precompute.csv plot_suite-sparse-manifest.py
 	python3 plot_suite-sparse-manifest.py
 
-$(FIGDIR)/suite_sparse_gpu_comparison.pdf: suite-sparse-manifest073026.csv suite-sparse-results073026.csv plot_suite_sparse_comparison.py
+$(FIGDIR)/suite_sparse_gpu_comparison.pdf: suite-sparse-manifest073026.csv suite-sparse-results080326-precompute.csv plot_suite_sparse_comparison.py
 	python3 plot_suite_sparse_comparison.py
 
-$(FIGDIR)/suite_sparse_comm_model.pdf: suite-sparse-results073026.csv plot_suite_sparse_comm_model.py
+$(FIGDIR)/suite_sparse_comm_model.pdf: suite-sparse-results080326-precompute.csv plot_suite_sparse_comm_model.py
 	python3 plot_suite_sparse_comm_model.py
 
 $(FIGDIR)/compare-precompute.pdf: plot_compare-precompute.py random-vary-matrix-nrows.csv rand-scale-rows-results080326-precompute.csv
