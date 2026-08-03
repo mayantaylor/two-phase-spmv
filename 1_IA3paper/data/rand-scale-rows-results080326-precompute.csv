@@ -1,0 +1,7 @@
+name,artifact_dir,nrows,ncols,matrix_nrows,matrix_ncols,nnz_max_capacity,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
+4194304nnz_1048576rows,/home/maytayl/matrices/cache/4194304nnz_1048576rows.npz,512,512,1048576,1048576,36,12886.0,12508.0,898.0,82.0,True,ok,,,,,
+4194304nnz_524288rows,/home/maytayl/matrices/cache/4194304nnz_524288rows.npz,512,512,524288,524288,37,10571.0,10202.0,922.0,82.0,True,ok,,,,,
+4194304nnz_131072rows,/home/maytayl/matrices/cache/4194304nnz_131072rows.npz,512,512,131072,131072,36,8858.0,8494.0,898.0,82.0,True,ok,,,,,
+4194304nnz_65536rows,/home/maytayl/matrices/cache/4194304nnz_65536rows.npz,512,512,65536,65536,37,8561.0,8211.0,922.0,82.0,True,ok,,,,,
+4194304nnz_262144rows,/home/maytayl/matrices/cache/4194304nnz_262144rows.npz,512,512,262144,262144,37,9469.0,9048.0,922.0,106.0,True,ok,,,,,
+4194304nnz_8192rows,/home/maytayl/matrices/cache/4194304nnz_8192rows.npz,512,512,8192,8192,38,8352.0,7949.0,946.0,58.0,True,ok,,,,,
