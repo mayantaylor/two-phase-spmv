@@ -5,13 +5,16 @@
 
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{subcaption}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -33,9 +36,12 @@
 \begin{abstract}
     Sparse linear algebra kernels are foundational to scientific computing, but also notoriously difficult to accelerate. Particular challenges arise due to their irregular memory access and load imbalance. We investigate these challenges on a spatial dataflow architecture: the Cerebras Wafer-Scale Engine (WSE). Designed for dense neural network workloads, this architecture promises extremely low latency memory access but requires the right algorithm and data placement, presenting a difficult design problem for sparse workloads.
 
-    The sparse matrix-vector product (SpMV) is a simple but valuable first case study on the WSE. We present the first algorithm for SpMV on the WSE and a companion performance model that aims to capture algorithmic tradeoffs and enable configuration selection. We evaluate both across various matrix sizes and structures and compare to conventional implementations.
-
-    This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and informs the most important directions for future work.
+    The sparse matrix-vector product (SpMV) is a simple but valuable first case study on the WSE.
+    We present the first algorithm for SpMV on the WSE and a companion communication model.
+    We evaluate both across various matrix sizes and structures, demonstrating the accuracy and utility of the communication model and discussing its shortcomings.
+    We also compare the WSE SpMV implementation to a CuSparse equivalent for context to more conventional implementation performance.
+    This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and
+    informs the most important directions for future work.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -52,7 +58,7 @@ The big ideas:
     \item what is the performance model and what are its shortcomings
     \item  is the performance model accurate
     \item  how do we make decisions about layout and resources for optimal performance?
-    \item lower and upper performance bounds for a given matrix/matrix type?
+    \item lower and upper performance bounds?
     \item is the spmv performant? compare to GPU
 \end{enumerate}
 
@@ -111,6 +117,7 @@ Spmv on other architectures
 \end{figure}
 
 \section{Two-Phase SpMV}
+Solving $Ax = y$.
 \begin{enumerate}
     \item The 1D collectives can be combined for SpMV.
     \item Distribute matrix nonzeros on the 2D mesh, Broadcast down rows, reduce across columns.
@@ -123,14 +130,59 @@ Spmv on other architectures
 \end{enumerate}
 
 \subsection{Dataflow Algorithm}
+Assuming that the matrix $A$ is distributed on the 2D mesh under a mapping that preserves row and column locality, the SpMV can be conceptually
+broken down into two simple 1D collective phases:
 \begin{enumerate}
-    \item Assuming RCL, SpMV can be broken down into our two simple 1D collectives.
-    \item Algorithm proceeds in two phases. Everyone waits for all broadcasts to complete (locally) and then contributes to their reductions in order.
-    \item Note that this is NOT bulk-synchronous. Reductions near the top of the grid can begin before those further down.
-    \item Data indices do not need to be communicated because x values are broadcast in order and reductions are processed in order.
+    \item Broadcast values of $x$ down mesh columns in the order prescribed by the mapping.
+    \item Reduce rows of partial products across mesh rows also in the order prescribed by the mapping.
 \end{enumerate}
 
+Ensuring that broadcasts and reductions proceed in a prescribed order means that indices of $x$ and row indices of the reductions do not need to be communicated - instead, they are implied by the order of arrival.
+
+In our implementation, the values of $x$ and the resulting values of $y$ are stored in 'moat' PEs: an extra row of PEs is set aside at the top of the
+mesh onto which the initial values of $x$ are loaded. Similarly, an extra column of PEs is allocated to the left of the grid wherein the result values $y$ are stored
+once computed.
+
+Locally, each PE processes the SpMV in three distinct phases with serialization points between them.
+\begin{enumerate}
+    \item Store all incoming broadcasts for the PE column
+    \item Complete all local compute for each output row
+    \item Contribute all results to row reductions
+\end{enumerate}
+In theory, local synchronizations between these three components are not necessary. For example, early incoming broadcasts could trigger compute before all broadcasts are received.
+While Tungsten does provide constructs that would support more overlap
+of communication and computation here, we evaluated a couple different approaches and found that the serial approach consistently performed best.
+
+Here it is important to note that while the kernel for each PE appears bulk-synchronous, the global algorithm is not. Broadcasts and reductions can proceed
+as soon as the next individual PE is ready. In practice, this might look like reductions near the top of the grid completing before those lower in the grid.
+
 \subsection{Row-Index Materialization}
+Within each PE, matrix data is stored in CSR format and processed accordingly. Our original compute kernel is described in Algorithm \ref{alg:spmv}.
+
+\begin{algorithm}
+    \caption{SpMV Kernel in CSR Format}
+    \label{alg:spmv}
+    \begin{algorithmic}[1]
+        \ForAll{$r \in \texttt{rows}$}
+        \State $sum \gets 0$
+        \For{$nnz \gets \texttt{Aptr}[r]$ \textbf{to} $(\texttt{Aptr}[r+1]-1)$}
+        \State $sum \gets sum + \texttt{vals}[nnz] \cdot \texttt{x}[ \texttt{vals}[nnz]]$
+        \EndFor
+        \State $partial[r] \gets sum$
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+    \caption{SpMV Kernel in CSR Format with Row-Index Materialization}
+    \label{alg:spmv-rim}
+    \begin{algorithmic}[1]
+        \ForAll{$n \in \texttt{nnzs}$}
+        \State $sum \gets \texttt{vals}[nnz] \cdot \texttt{x} \texttt{vals}[nnz]$
+        \State $partial[\texttt{get_row}[n]] \gets partial[\texttt{get_row}[n]] + sum$
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
 \section{Modeling SpMV}
 \textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
 \subsection{Communication}
