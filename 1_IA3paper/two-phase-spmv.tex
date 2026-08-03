@@ -166,9 +166,9 @@ Within each PE, matrix data is stored in CSR format and processed accordingly. O
         \ForAll{$r \in \texttt{rows}$}
         \State $sum \gets 0$
         \For{$nnz \gets \texttt{Aptr}[r]$ \textbf{to} $(\texttt{Aptr}[r+1]-1)$}
-        \State $sum \gets sum + \texttt{vals}[nnz] \cdot \texttt{x}[ \texttt{vals}[nnz]]$
+        \State $sum \gets sum + \texttt{vals}[nnz] \cdot \texttt{x}[ \texttt{cols}[nnz]]$
         \EndFor
-        \State $partial[r] \gets sum$
+        \State $\texttt{partial}[r] \gets sum$
         \EndFor
     \end{algorithmic}
 \end{algorithm}
@@ -178,11 +178,14 @@ Within each PE, matrix data is stored in CSR format and processed accordingly. O
     \label{alg:spmv-rim}
     \begin{algorithmic}[1]
         \ForAll{$n \in \texttt{nnzs}$}
-        \State $sum \gets \texttt{vals}[nnz] \cdot \texttt{x} \texttt{vals}[nnz]$
-        \State $partial[\texttt{get_row}[n]] \gets partial[\texttt{get_row}[n]] + sum$
+        \State $sum \gets \texttt{vals}[nnz] \cdot \texttt{x} [\texttt{cols}[nnz]]$
+        \State $r \gets \texttt{rowids}[nnz]$
+        \State $\texttt{partial}[r] \gets \texttt{partial}[r] + sum$
+
         \EndFor
     \end{algorithmic}
 \end{algorithm}
+
 \section{Modeling SpMV}
 \textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
 \subsection{Communication}
