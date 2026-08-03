@@ -11,7 +11,7 @@ except Exception:
 
 # Input files
 manifest_csv = "suite-sparse-manifest073026.csv"
-results_csv = "suite-sparse-results073026.csv"
+results_csv = "suite-sparse-results080326-precompute.csv"
 
 # Read CSVs
 manifest_df = pd.read_csv(manifest_csv)
@@ -91,7 +91,7 @@ df["color"] = df["mapping"].map(mapping_color_map)
 
 
 # Add vertical divider between atmosmodl and delaunay_n23
-split_matrix = "atmosmodl.npz"
+split_matrix = "dielFilterV2real.npz"
 
 if split_matrix in x_map:
     split_x = x_map[split_matrix] + 0.5

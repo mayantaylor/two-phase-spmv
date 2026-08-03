@@ -129,6 +129,8 @@ Spmv on other architectures
     \item Note that this is NOT bulk-synchronous. Reductions near the top of the grid can begin before those further down.
     \item Data indices do not need to be communicated because x values are broadcast in order and reductions are processed in order.
 \end{enumerate}
+
+\subsection{Row-Index Materialization}
 \section{Modeling SpMV}
 \textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
 \subsection{Communication}
@@ -150,16 +152,37 @@ To evaluate our algorithm for SpMV, we use both randomly generated matrices and 
 \input{data/suite_sparse_matrices.tex}
 
 \section{Evaluation}
+
+\subsection{Row-Index Materialization}
+\begin{figure}
+    \centering
+    \centering
+    \includegraphics[width=\linewidth]{figures/compare-precompute.pdf}
+    \caption{Evaluating the performance benefit provided by row index materialization}
+
+    \label{fig:compare-precomput}
+\end{figure}
+
+
 \subsection{Model Evaluation}
 \textcolor{red}{BIG IDEA 1. is the performance model accurate}
 
 Initial model evaluation is performed using randomly generated matrices.
 The goal is to evaluate the accuracy of the performance model under the assumption of uniformly distributed nonzeros, and associated relative load balance.
 Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices.
-\begin{enumerate}
-    \item \textcolor{green}{TODO: Plot for a couple different matrices as number of PEs varies (can see where the computation dominates and where communication dominates)}
-    \item these plots use the randomly generated matrices, no need to talk about load imbalance yet
-\end{enumerate}
+these plots use the randomly generated matrices, no need to talk about load imbalance yet
+
+
+\begin{figure}
+    \centering
+    \centering
+    \includegraphics[width=\linewidth]{figures/random-scale-npes.pdf}
+    \caption{PE Dim Scaling for 3 different matrices}
+
+    \label{fig:scale-npes}
+\end{figure}
+
+
 
 \subsection{Matrix Layout}
 \label{sec:layout}
@@ -211,22 +234,23 @@ Breakdown of performance by phase and by communication vs computation in Figure 
 
 \subsection{GPU Comparison}
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
+
+GPU comparison is a datapoint, not 'comparison'. Other factors like writing custom gpu kernels and power draw
+use default cusparse CSR and collect all the cusparse configurations
+
+
 1. the impact of structure (same number of nnz)
 2. suite sparse performance
 both runtime and throughput plots (maybe throughput put Triad throughput as comparison)
-\begin{enumerate}
-    \item do we include just basic scaling (weak and strong)
-    \item GPU comparison is a datapoint, not 'comparison'. Other factors like writing custom gpu kernels and power draw
-    \item Look at performance across sparsity structures and sizes and compare to GPU
-    \item suite sparse selections in figure \ref{fig:suite-sparse-scatter}
-    \item use default cusparse CSR and collect all the cusparse configurations
-    \item diagonal, tridiagonal, banded
-\end{enumerate}
+
+\textcolor{green}{TODO: basic weak and strong scaling comparison}, performance across randomly generate matrices
+
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_gpu_comparison.pdf}
-    \caption{Speedup of WSE SpMV over GPU SpMV for various matrices from the SuiteSparse collection.}    \label{fig:suite-sparse-gpu-comp}
+    \caption{Speedup of WSE SpMV over GPU SpMV for various matrices from the SuiteSparse collection.}
+    \label{fig:suite-sparse-gpu-comp}
 \end{figure}
 
 

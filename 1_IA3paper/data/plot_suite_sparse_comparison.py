@@ -9,7 +9,7 @@ if not os.path.exists('suite_sparse_gpu_eval.csv') or not os.path.exists('suite-
     exit()
 
 df = pd.read_csv('suite_sparse_gpu_eval.csv')
-results_df = pd.read_csv('suite-sparse-results073026.csv')
+results_df = pd.read_csv('suite-sparse-results080326-precompute.csv')
 
 # Extract the last part of the matrix path (filename)
 df['matrix_name'] = df['matrix_path'].str.split('/').str[-1]
@@ -35,10 +35,9 @@ df['max_time'] = pd.to_numeric(df['max_time'], errors='coerce') / 1000000 # conv
 df['throughput'] = df['nnz'] / df['gpu_mean_ms']
 
 # Create figure with subplots
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 12))
-
 x = np.arange(len(df))
 width = 0.35
+font_size = 20
 
 df['speedup'] = df['gpu_mean_ms'] / df['max_time']
 
@@ -58,11 +57,11 @@ ax1.bar(
     width=0.8,
     color='tab:blue',
     alpha=0.7,
-    label='WSE Speedup'
+    label='WSE Speedup',
 )
 ax1.axhline(1, color='red', linestyle='--', linewidth=1)
 
-ax1.set_ylabel("WSE Speedup", color='tab:blue')
+ax1.set_ylabel("WSE Speedup", color='tab:blue',fontsize = font_size)
 ax1.tick_params(axis='y', labelcolor='tab:blue')
 
 # Example left limits
@@ -79,9 +78,9 @@ ax2.scatter(
     color='tab:orange',
     marker='o',
     linewidth=2,
-    label='NNZ Capacity Ratio'
+    label='Load Imbalance Ratio'
 )
-ax2.set_ylabel("NNZ Capacity Ratio", color='tab:orange')
+ax2.set_ylabel("Load Imbalance Ratio", color='tab:orange', fontsize = font_size)
 
 ax2.tick_params(axis='y', labelcolor='tab:orange')
 rmin = min(df['nnz_capacity_ratio'].min(), 1)
@@ -93,7 +92,7 @@ new_rmin = (frac * rmax - 1) / (frac - 1)
 ax2.set_ylim(new_rmin, rmax + 5)
 
 # Shared x-axis
-ax1.set_xlabel("Matrix")
+ax1.set_xlabel("Matrix", fontsize = font_size)
 ax1.set_xticks(x)
 ax1.set_xticklabels(df['matrix_name'], rotation=45, ha='right')
 
