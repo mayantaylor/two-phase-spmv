@@ -1,7 +1,5 @@
 name,artifact_dir,nrows,ncols,matrix_nrows,matrix_ncols,nnz_max_capacity,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
-delaunay_n23.073026.512x512.random,/home/maytayl/matrices/cache/delaunay_n23.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-Chebyshev4.073026.512x512.cyclic,/home/maytayl/matrices/cache/Chebyshev4.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,
-atmosmodl.073026.512x512.cyclic,/home/maytayl/matrices/cache/atmosmodl.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,
+Chebyshev4.073026.512x512.cyclic,/home/maytayl/matrices/cache/Chebyshev4.073026.512x512.cyclic,512,512,68121,68121,281,14433,8000,6778,82,,skipped,,,,,
 dielFilterV2real.073026.512x512.cyclic,/home/maytayl/matrices/cache/dielFilterV2real.073026.512x512.cyclic,512,512,1157456,1157456,2435,70615.0,61767.0,58474.0,2194.0,False,error,driver,RuntimeError,,/home/maytayl/groc-scratch-summer26/spmv/spmv32/scripts/saved_make_logs/004_dielFilterV2real.073026.512x512.cyclic_make-log,"FAIL: float32 mismatch(es) found
   idx 680737: got=-0.000027776, ref=-0.000030444, absdiff=0.000002668
   idx 725695: got=-0.000000723, ref=-0.000000790, absdiff=0.000000067
@@ -14,29 +12,3 @@ crankseg_1.073026.512x512.cyclic,/home/maytayl/matrices/cache/crankseg_1.073026.
   idx 28624: got=43.375000000, ref=40.988281250, absdiff=2.386718750
   idx 47125: got=-8.757812500, ref=-8.501953125, absdiff=0.255859375"
 kron_g500-logn17.073026.512x512.cyclic,/home/maytayl/matrices/cache/kron_g500-logn17.073026.512x512.cyclic,512,512,131072,131072,157,11624.0,9010.0,3802.0,82.0,True,ok,,,,,
-Chebyshev4.073026.512x512.blocked,/home/maytayl/matrices/cache/Chebyshev4.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-delaunay_n23.073026.512x512.blocked,/home/maytayl/matrices/cache/delaunay_n23.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-mawi_201512020030.073026.512x512.blocked,/home/maytayl/matrices/cache/mawi_201512020030.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-atmosmodl.073026.512x512.blocked,/home/maytayl/matrices/cache/atmosmodl.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-dielFilterV2real.073026.512x512.blocked,/home/maytayl/matrices/cache/dielFilterV2real.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-radiation.073026.512x512.blocked,/home/maytayl/matrices/cache/radiation.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-com-Youtube.073026.512x512.blocked,/home/maytayl/matrices/cache/com-Youtube.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-indochina-2004.073026.512x512.blocked,/home/maytayl/matrices/cache/indochina-2004.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-stokes.073026.512x512.blocked,/home/maytayl/matrices/cache/stokes.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-crankseg_1.073026.512x512.blocked,/home/maytayl/matrices/cache/crankseg_1.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-kron_g500-logn17.073026.512x512.blocked,/home/maytayl/matrices/cache/kron_g500-logn17.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-twitter7.073026.512x512.blocked,/home/maytayl/matrices/cache/twitter7.073026.512x512.blocked,,,,,,,,,,,skipped,,,,,
-Chebyshev4.073026.512x512.random,/home/maytayl/matrices/cache/Chebyshev4.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-mawi_201512020030.073026.512x512.random,mawi_201512020030.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-atmosmodl.073026.512x512.random,/home/maytayl/matrices/cache/atmosmodl.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-dielFilterV2real.073026.512x512.random,/home/maytayl/matrices/cache/dielFilterV2real.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-com-Youtube.073026.512x512.random,/home/maytayl/matrices/cache/com-Youtube.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-indochina-2004.073026.512x512.random,/home/maytayl/matrices/cache/indochina-2004.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-stokes.073026.512x512.random,/home/maytayl/matrices/cache/stokes.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-crankseg_1.073026.512x512.random,/home/maytayl/matrices/cache/crankseg_1.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-kron_g500-logn17.073026.512x512.random,/home/maytayl/matrices/cache/kron_g500-logn17.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-twitter7.073026.512x512.random,/home/maytayl/matrices/cache/twitter7.073026.512x512.random,,,,,,,,,,,skipped,,,,,
-delaunay_n23.073026.512x512.cyclic,/home/maytayl/matrices/cache/delaunay_n23.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,
-mawi_201512020030.073026.512x512.cyclic,mawi_201512020030.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,
-stokes.073026.512x512.cyclic,/home/maytayl/matrices/cache/stokes.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,
-twitter7.073026.512x512.cyclic,/home/maytayl/matrices/cache/twitter7.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,

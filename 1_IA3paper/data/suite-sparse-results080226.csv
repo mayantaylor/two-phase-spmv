@@ -13,9 +13,7 @@ dielFilterV2real.073026.512x512.cyclic,/home/maytayl/matrices/cache/dielFilterV2
 radiation.073026.512x512.cyclic,/home/maytayl/matrices/cache/radiation.073026.512x512.cyclic,512,512,223104,223104,488,27001.0,19378.0,19109.0,7936.0,False,error,driver,RuntimeError,,/home/maytayl/groc-scratch-summer26/spmv/spmv32/scripts/saved_make_logs/004_radiation.073026.512x512.cyclic_make-log,"FAIL: float32 mismatch(es) found
   idx 33008: got=-0.000000008, ref=-0.000000009, absdiff=0.000000000"
 com-Youtube.073026.512x512.cyclic,/home/maytayl/matrices/cache/com-Youtube.073026.512x512.cyclic,512,512,1134890,1134890,132,53915.0,52555.0,42978.0,39970.0,True,ok,,,,,
-indochina-2004.073026.512x512.cyclic,/home/maytayl/matrices/cache/indochina-2004.073026.512x512.cyclic,,,,,,,,,,,skipped,,,,,
 crankseg_1.073026.512x512.cyclic,/home/maytayl/matrices/cache/crankseg_1.073026.512x512.cyclic,512,512,52804,52804,157,12554.0,10233.0,5502.0,2213.0,False,error,driver,RuntimeError,,/home/maytayl/groc-scratch-summer26/spmv/spmv32/scripts/saved_make_logs/007_crankseg_1.073026.512x512.cyclic_make-log,"FAIL: float32 mismatch(es) found
   idx 28624: got=43.875000000, ref=40.988281250, absdiff=2.886718750
   idx 47125: got=-8.882812500, ref=-8.501953125, absdiff=0.380859375"
 kron_g500-logn17.073026.512x512.cyclic,/home/maytayl/matrices/cache/kron_g500-logn17.073026.512x512.cyclic,512,512,131072,131072,157,14800.0,13566.0,8256.0,4691.0,True,ok,,,,,
-
