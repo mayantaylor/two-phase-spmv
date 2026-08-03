@@ -47,13 +47,12 @@ def main():
             label=f"{int(matrix_nrows)} max_chain_time"
         )
         
-        plt.plot(
+        plt.scatter(
                     sub["nrows"],
                     sub["comm_model"],
                     marker="*",
-                    markersize=13,
-                    linestyle="-.",
                     color=color,
+                    s=200,
                     label=f"{int(matrix_nrows)} comm model"
                 )
 
