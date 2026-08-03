@@ -15,7 +15,7 @@ def main():
     
     df["B"] = df["matrix_nrows"] / df['nrows']
     df["comm_model"] = df["B"] + 12 * (df['nrows'] + 1) + 9/64 * df['nrows'] + df["B"] + 2 * df['nrows'] + 10 + 9/128 * df['nrows']
-
+    
     categories = sorted(df["matrix_nrows"].dropna().unique())
     if len(categories) == 0:
         raise ValueError("No matrix_nrows categories found in the CSV.")
@@ -47,6 +47,15 @@ def main():
             label=f"{int(matrix_nrows)} max_chain_time"
         )
         
+        plt.plot(
+                    sub["nrows"],
+                    sub["max_chain_time"] + sub['comm_model'],
+                    linestyle="--",
+                    color='k',
+                    label=f"{int(matrix_nrows)} sum"
+                )
+                
+        
         plt.scatter(
                     sub["nrows"],
                     sub["comm_model"],
@@ -61,7 +70,6 @@ def main():
     
     plt.yscale('log')
     plt.xscale('log')
-    plt.title("rand-4types: max_time and max_chain_time vs nrows")
     plt.xticks(sorted(df["nrows"].dropna().unique()))
     plt.legend()
     plt.grid(True, alpha=0.3)

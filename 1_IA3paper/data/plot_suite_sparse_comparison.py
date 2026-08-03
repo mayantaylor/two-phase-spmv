@@ -3,13 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-# Read the CSV file
-if not os.path.exists('suite_sparse_gpu_eval.csv') or not os.path.exists('suite-sparse-results073026.csv'):
-    print("Error: CSV files not found")
-    exit()
 
 df = pd.read_csv('suite_sparse_gpu_eval.csv')
-results_df = pd.read_csv('suite-sparse-results080326-precompute.csv')
+results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
 
 # Extract the last part of the matrix path (filename)
 df['matrix_name'] = df['matrix_path'].str.split('/').str[-1]
@@ -72,17 +68,17 @@ y1min, y1max = ax1.get_ylim()
 frac = (1 - y1min) / (y1max - y1min)
 
 # Right axis: whatever you're plotting (e.g., runtime)
-ax2.scatter(
+ax2.plot(
     x,
     df['nnz_capacity_ratio'],
-    color='tab:orange',
+    color='k',
     marker='o',
     linewidth=2,
     label='Load Imbalance Ratio'
 )
-ax2.set_ylabel("Load Imbalance Ratio", color='tab:orange', fontsize = font_size)
+ax2.set_ylabel("Load Imbalance Ratio", color='k', fontsize = font_size)
 
-ax2.tick_params(axis='y', labelcolor='tab:orange')
+ax2.tick_params(axis='y', labelcolor='k')
 rmin = min(df['nnz_capacity_ratio'].min(), 1)
 rmax = max(df['nnz_capacity_ratio'].max(), 1)
 

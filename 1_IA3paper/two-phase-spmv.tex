@@ -156,17 +156,23 @@ of communication and computation here, we evaluated a couple different approache
 Here it is important to note that while the kernel for each PE appears bulk-synchronous, the global algorithm is not. Broadcasts and reductions can proceed
 as soon as the next individual PE is ready. In practice, this might look like reductions near the top of the grid completing before those lower in the grid.
 
-\subsection{Row-Index Materialization}
-Within each PE, matrix data is stored in CSR format and processed accordingly. Our original compute kernel is described in Algorithm \ref{alg:spmv}.
+\subsection{PE-Local Storage Format}
+We implement two standard matrix storage formats: CSR and COO. These dictate only the storage of each PE's individual domain,
+and therefore also the compute kernel per PE. Algorithm \ref{alg:csr} outlines the CSR algorithm, and Algorithm \ref{alg:coo} outlines the COO algorithm.
+The COO format avoids the nested for loop and is therefore friendlier to the Tungsten compiler.
+On the other hand, COO replaces the Aptr data structure, which has length corresponding to the number of local rows, with
+a rowids data structure with an entry for each non-zero.
+
+In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much more efficient than CSR.
 
 \begin{algorithm}
     \caption{SpMV Kernel in CSR Format}
-    \label{alg:spmv}
+    \label{alg:csr}
     \begin{algorithmic}[1]
         \ForAll{$r \in \texttt{rows}$}
         \State $sum \gets 0$
         \For{$nnz \gets \texttt{Aptr}[r]$ \textbf{to} $(\texttt{Aptr}[r+1]-1)$}
-        \State $sum \gets sum + \texttt{vals}[nnz] \cdot \texttt{x}[ \texttt{cols}[nnz]]$
+        \State $sum \gets sum + \texttt{vals}[nnz] \cdot \texttt{x}[ \texttt{colids}[nnz]]$
         \EndFor
         \State $\texttt{partial}[r] \gets sum$
         \EndFor
@@ -174,11 +180,11 @@ Within each PE, matrix data is stored in CSR format and processed accordingly. O
 \end{algorithm}
 
 \begin{algorithm}
-    \caption{SpMV Kernel in CSR Format with Row-Index Materialization}
-    \label{alg:spmv-rim}
+    \caption{SpMV Kernel in COO Format}
+    \label{alg:coo}
     \begin{algorithmic}[1]
         \ForAll{$n \in \texttt{nnzs}$}
-        \State $sum \gets \texttt{vals}[nnz] \cdot \texttt{x} [\texttt{cols}[nnz]]$
+        \State $sum \gets \texttt{vals}[nnz] \cdot \texttt{x} [\texttt{colids}[nnz]]$
         \State $r \gets \texttt{rowids}[nnz]$
         \State $\texttt{partial}[r] \gets \texttt{partial}[r] + sum$
 
@@ -202,22 +208,47 @@ Within each PE, matrix data is stored in CSR format and processed accordingly. O
 \end{enumerate}
 
 \section{Experimental Setup}
-To evaluate our algorithm for SpMV, we use both randomly generated matrices and a selection of matrices from SuiteSparse.
+We evaluate our SpMV algorithm and communication model on a WSE-3 in 32-bit floating point precision. The GPU baseline comparisons
+are made with a cuSparse implementation evaluated on a single H200.
+\subsection{Matrix Selection}
+We evaluate on two classes of matrices: custom randomly generated matrices and a selection of matrices from SuiteSparse.
+The randomly generated matrices are tunable based on matrix size and number of nonzeros. Nonzeros are placed uniformly at random.
 
+A selection of SuiteSparse matrices is chosen for evaluation to capture SpMV performance on more real world use-cases
+across a variety of applications, structures, and sizes. Our selection is outlined in Table \ref{tab:suite_sparse_matrices}.
 \input{data/suite_sparse_matrices.tex}
+
+\subsection{WSE Pre-processing}
+Once a matrix is chosen, a pre-processing step generates the corresponding input files for the WSE.
+This step requires the matrix itself, the size of the PE grid, the mapping strategy (blocked, cyclic, random), and the format (COO, CSR).
+The result of pre-processing is a set of binary files describing the data to be loaded on to the device.
+This pre-processing step is not measured in algorithm runtime, and would in theory be reusable across multiple iterations of SpMV on the same matrix.
 
 \section{Evaluation}
 
-\subsection{Row-Index Materialization}
-\begin{figure}
+\subsection{COO vs CSR}
+In all subsequent evaluation, we use COO.
+\label{sec:coovscsr}
+\begin{figure}[]
     \centering
-    \centering
-    \includegraphics[width=\linewidth]{figures/compare-precompute.pdf}
-    \caption{Evaluating the performance benefit provided by row index materialization}
 
-    \label{fig:compare-precomput}
+    \begin{subfigure}{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/compare-coo.pdf}
+        \caption{Scaling rows.}
+        \label{fig:compare-coo-scalerows}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/compare-coo-scalennz.pdf}
+        \caption{Scaling nonzeros.}
+        \label{fig:compare-coo-scalennz}
+    \end{subfigure}
+
+    \caption{Comparison of the COO implementation under two scaling studies.}
+    \label{fig:compare-coo}
 \end{figure}
-
 
 \subsection{Model Evaluation}
 \textcolor{red}{BIG IDEA 1. is the performance model accurate}
@@ -242,15 +273,22 @@ these plots use the randomly generated matrices, no need to talk about load imba
 \subsection{Matrix Layout}
 \label{sec:layout}
 
-In addition to the uniformly random matrices, we evaluate our algorithm on a selection of real world matrices from SuiteSparse.
-These matrices introduce structure which produces load imbalance under the basic 2D blocked decomposition.
+Our selection of SuiteSparse matrices are an important addition to evaluation because they introduce structure which produces load imbalance, particularly under the basic 2D blocked decomposition. These matrices highlight
+the utility of other mapping schemes.
+Figure \ref{fig:suite-sparse-parameters} illustrates a first pass over the SuiteSparse selection under each of our three
+mapping schemes, demonstrating how each scheme and matrix combination produces a different max nnz count.
 
-Important note: We are limited by the 48 KB of local memory, and after stack and other variable allocation, this correlates to a max NNZ per pe of around 8000. This is a key limiting factor determining which matrices and layouts we can evaluate. A similar constraint applys to the number of matrix rows per PE row (or the size of the vector input and output), which further restricts our testing space.
+This gives us a sense of how each mapping performs, based on the estimated maximum time spent in compute. The blocked
+mapping typically introduces the most load imbalance, and cyclic and random often perform similarly.
+
+The horizontal and vertical lines in Figure \ref{fig:suite-sparse-parameters} highlight the memory constraints of the WSE and the limitations
+on the matrices and configurations our algorithm supports. The local 48KB limit per PE restricts both the number of nonzeros a PE can store and
+the number of rows mapped to a single PE row (equivalently for columns). The horizontal line represents the nnz cap, and the vertical line represents the row count cap.
+Note that these two caps are in fact dependent on eachtoher because the core PE mesh must store an array entry for each nonzero and an array entry for each local row. The lines don't reflect this dependency, but simply designate the apparent cutoffs not theoretical limits.
+
 Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to the hardware, and only under certain mapping schemes.
 
-Figure \ref{fig:suite-sparse-parameters} shows the parameter space of our suite sparse selection for three different mappings.
 
-\textcolor{green}{TODO: analysis of max to average nnz under each scheme}
 
 
 
@@ -267,18 +305,11 @@ Figure \ref{fig:suite-sparse-parameters} shows the parameter space of our suite 
     lower and upper performance bounds for a given matrix/matrix type?
 }
 
-Choose mapping based on best NNZ to average ratio.
+Not really sure if I can say anything here\dots
 
-\begin{enumerate}
-    \item Lower bound is given by the communication model.
-    \item Upper bound is the max of the communication model or the computation cost on the most overloaded PE.
-\end{enumerate}
-
+\subsection{SuiteSparse Breakdown}
 Breakdown of performance by phase and by communication vs computation in Figure \ref{fig:suite-sparse-comm-model}
-
-\textcolor{green}{TODO: analysis of max comp time too! in this figure}
-
-
+Note that the number of nnzs corresponds exactly to the compute time.
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_comm_model.pdf}
@@ -298,7 +329,7 @@ use default cusparse CSR and collect all the cusparse configurations
 2. suite sparse performance
 both runtime and throughput plots (maybe throughput put Triad throughput as comparison)
 
-\textcolor{green}{TODO: basic weak and strong scaling comparison}, performance across randomly generate matrices
+\textcolor{green}{TODO: the suite sparse matrices have substantially little nnz per row. do a scaling comparison with randomly generated matrices to look at larger nnz per row}, performance across randomly generate matrices
 
 
 \begin{figure}

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-results_df = pd.read_csv('suite-sparse-results080326-precompute.csv')
+results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
 
 # Extract the last part of the matrix path (filename)
 results_df['matrix_name'] = results_df['name'].astype(str).str.split('.').str[0]
@@ -14,11 +14,13 @@ results_df.sort_values('matrix_nrows', inplace=True)
 
 
 
-
+results_df['nnz_max_capacity'] = pd.to_numeric(
+    results_df['nnz_max_capacity'], errors='coerce'
+)
 # Create figure with subplots
 
 x = np.arange(len(results_df))
-width = 0.2
+width = 0.33
 fs = 20
 
 fig, ax1 = plt.subplots(figsize=(12, 8))
@@ -26,17 +28,17 @@ ax2 = ax1.twinx()
 
 
 ax1.bar(
-    x -  width,
+    x - width/2,
     (results_df['reduce_model'] + results_df['bcast_model']) / 1000000,
     width=width,
     color='tab:blue',
+    bottom=(results_df['max_chain_time']) / 1000000,
     alpha=0.7,
     label='Comm model'
 )
 
-
 ax1.bar(
-    x ,
+    x - width/2,
     results_df['max_chain_time'] / 1000000,
     width=width,
     color='tab:green',
@@ -45,7 +47,7 @@ ax1.bar(
 )
 
 ax1.bar(
-    x + width,
+    x + width/2,
     results_df['max_time'] / 1000000,
     width=width,
     color='tab:orange',
@@ -53,9 +55,19 @@ ax1.bar(
     label='Total time'
 )
 
+ax2.plot(
+    x,
+    results_df['nnz_max_capacity'],
+    color='black',
+    marker='o',
+    linewidth=2,
+    markersize=6,
+    label='Max NNZ capacity',
+)
 
-
-
+ax2.set_ylabel("Max NNZ Count", fontsize=fs)
+ax2.tick_params(axis='y', labelsize=16)
+ax2.legend(loc='center right', fontsize=fs)
 
 ax1.legend(loc='upper left', fontsize=fs)
 
