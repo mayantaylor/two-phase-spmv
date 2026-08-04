@@ -55,12 +55,13 @@ def main():
     for m in SIZES:
         n = m
         for nnz in NNZ_VALUES:
-            outfile = outdir / f"matrix_m{m}_n{n}_nnz{nnz}.mtx"
+            full_nnz = nnz * m
+            outfile = outdir / f"matrix_{m}rows_{nnz}nnzperrow.npz"
 
             cmd = [
                 args.python,
                 args.script,
-                "--nnz", str(nnz),
+                "--nnz", str(full_nnz),
                 str(outfile),
                 str(m),
                 str(n),
@@ -80,7 +81,7 @@ def main():
     if failures:
         print("\nSome runs failed:", file=sys.stderr)
         for m, n, nnz, code in failures:
-            print(f"  m={m} n={n} nnz={nnz} -> exit {code}", file=sys.stderr)
+            print(f"  m={m} n={n} nnzperrow={nnz} -> exit {code}", file=sys.stderr)
         sys.exit(1)
     else:
         print("\nAll matrices generated successfully." if not args.dry_run else "\nDry run complete.")
