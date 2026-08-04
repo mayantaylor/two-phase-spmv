@@ -1,4 +1,4 @@
-matrix_path,rows,cols,nnz,cpu_mean_ms,cpu_bw_GBs,gpu_coo_alg1_mean_ms,gpu_coo_alg1_bw_GBs
+matrix_path,rows,cols,nnz,gpu_mean_ms,gpu_bw_GBs
 /home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/atmosmodl.npz,1489752,1489752,10319760,0.050023679733276365,2713.8174705227457
 /home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/Chebyshev4.npz,68121,68121,5377761,0.021875200271606447,2974.9716204642027
 /home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/com-Youtube.npz,1134890,1134890,5975248,0.03885184049606323,2079.234727842185
