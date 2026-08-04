@@ -1,0 +1,1 @@
+name,artifact_dir,nrows,ncols,matrix_nrows,matrix_ncols,nnz_max_capacity,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
