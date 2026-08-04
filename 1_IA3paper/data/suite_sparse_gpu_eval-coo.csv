@@ -1,0 +1,13 @@
+matrix_path,rows,cols,nnz,cpu_mean_ms,cpu_bw_GBs,gpu_coo_alg1_mean_ms,gpu_coo_alg1_bw_GBs
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/atmosmodl.npz,1489752,1489752,10319760,0.050023679733276365,2713.8174705227457
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/Chebyshev4.npz,68121,68121,5377761,0.021875200271606447,2974.9716204642027
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/com-Youtube.npz,1134890,1134890,5975248,0.03885184049606323,2079.234727842185
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/crankseg_1.npz,52804,52804,10614210,0.04020864009857178,3178.246060715175
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/delaunay_n23.npz,8388608,8388608,50331568,0.22925567626953125,2927.245645211488
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/dielFilterV2real.npz,1157456,1157456,48538952,0.17884288787841796,3308.641898034388
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/indochina-2004.npz,7414866,7414866,194109311,0.6756390380859375,3535.3650771378007
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/kron_g500-logn17.npz,131072,131072,10228360,0.07004032135009766,1767.394746538058
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/mawi_201512020030.npz,68863315,68863315,143414960,1.0249574279785156,2216.566247517962
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/radiation.npz,223104,223104,7637688,0.03914752006530762,2386.794561804276
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/stokes.npz,11449533,11449533,349321980,1.3068537902832031,3277.688794147162
+/home/mayat4/two-phase-spmv/1_IA3paper/scripts/matrices/twitter7.npz,41652230,41652230,1468365182,24.37395751953125,736.5894524766234
