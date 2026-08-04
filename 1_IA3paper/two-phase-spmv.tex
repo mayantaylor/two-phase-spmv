@@ -320,7 +320,6 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
     lower and upper performance bounds for a given matrix/matrix type?
 }
 
-Not really sure if I can say anything here\dots
 
 
 \textcolor{green}{TODO: heat map of results: nnz per row: 16, 64, 256, 1024, PE grid dim: 64, 128, 256, 384, 512, matrix nrows:8192,32768, 131072,524288, 2097152 }
@@ -347,7 +346,22 @@ use default cusparse CSR and collect all the cusparse configurations
 2. suite sparse performance
 both runtime and throughput plots (maybe throughput put Triad throughput as comparison)
 
-\textcolor{green}{TODO: the suite sparse matrices have substantially little nnz per row. do a scaling comparison with randomly generated matrices to look at larger nnz per row}, performance across randomly generate matrices
+\textcolor{green}{TODO: the suite sparse matrices have substantially little nnz per row. do a scaling comparison with randomly generated matrices to look at larger nnz per row}, performance across randomly generate matrices,
+
+\begin{figure*}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/matrix-space-gpu.pdf}
+        \caption{GPU Throughput}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \caption{WSE Throughput}
+    \end{subfigure}
+    \caption{Throughput for various row densities, increasing matrix size. Comparison for H200 and WSE3.}
+\end{figure*}
 
 
 \begin{figure}

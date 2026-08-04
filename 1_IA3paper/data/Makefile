@@ -4,8 +4,9 @@ FIGDIR := ../figures
 COLLECTIVE_FIGURES := collectives_scaleB collectives_scaleP
 RAND_EVAL_FIGURES := compare-coo random-scale-npes compare-coo-scalennz
 SUITESPARSE_FIGURES := suite_sparse_manifest suite_sparse_gpu_comparison suite_sparse_comm_model suite_sparse_matrices suite_sparse_gpu_eval
+MATRIX_SPACE_FIGURES := matrix-space-gpu
 
-FIGURES := $(COLLECTIVE_FIGURES) $(SUITESPARSE_FIGURES) $(RAND_EVAL_FIGURES)
+FIGURES := $(COLLECTIVE_FIGURES) $(SUITESPARSE_FIGURES) $(RAND_EVAL_FIGURES) $(MATRIX_SPACE_FIGURES)
 TARGETS := $(addprefix $(FIGDIR)/,$(addsuffix .pdf,$(FIGURES)))  
 
 .PHONY: all clean
