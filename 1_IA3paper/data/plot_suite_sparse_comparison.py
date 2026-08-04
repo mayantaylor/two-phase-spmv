@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 
-df = pd.read_csv('suite_sparse_gpu_eval.csv')
+df = pd.read_csv('suite_sparse_gpu_eval-coo.csv')
 results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
 
 # Extract the last part of the matrix path (filename)

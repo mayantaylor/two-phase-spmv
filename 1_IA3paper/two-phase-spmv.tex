@@ -68,6 +68,11 @@ The big ideas:
 \subsection{Matrix-Free Approaches for SpMV on Cerebras}
 \subsection{Related Work }
 Spmv on other architectures
+
+\cite{gao2024systematicliteraturesurveysparse} Mentions for distributed archs: "Current research efforts primarily focus on
+reducing overall communication costs through specific matrix
+partitioning or reordering techniques, as well as overlapping
+computation and communication processes"
 \section{1D Collectives}
 \begin{enumerate}
     \item Luczynski et al presents the chain reduce and multicast broadcast that we use.
@@ -123,11 +128,15 @@ Solving $Ax = y$.
     \item Distribute matrix nonzeros on the 2D mesh, Broadcast down rows, reduce across columns.
 \end{enumerate}
 \subsection{Sparse Partitionings}
+
+We use what \cite{gao2024systematicliteraturesurveysparse} calls a Fixed rows-based partitioning. They note "it is important to note that an equal number of matrix rows
+does not necessarily correspond to the same workload."
 \begin{enumerate}
     \item To use the 1D collectives, the matrix must be distributed in a row and column locality (RCL) fashion.
     \item My results explore a blocked, cyclic, and random partitioning of rows and columns.
     \item Load imbalance is important.
 \end{enumerate}
+
 
 \subsection{Dataflow Algorithm}
 Assuming that the matrix $A$ is distributed on the 2D mesh under a mapping that preserves row and column locality, the SpMV can be conceptually
@@ -224,6 +233,12 @@ This step requires the matrix itself, the size of the PE grid, the mapping strat
 The result of pre-processing is a set of binary files describing the data to be loaded on to the device.
 This pre-processing step is not measured in algorithm runtime, and would in theory be reusable across multiple iterations of SpMV on the same matrix.
 
+\subsection{CuPy Comparison}
+
+We evaluate using a CuSparse SpMV implementation on a single H200, also in 32-bit float precision.
+Specifically, we use the COO configuration $CUSPARSE_SPMV_COO_ALG1$ which has demonstrated the best performance on SuiteSparse matrices in recent literature \cite{gao2024systematicliteraturesurveysparse}.
+On our selection, this configuration achieves up to a 1.3x speedup over the default CuPy implementation selection. Each GPU datapoint includes 20 warmup iterations and an average timing over 50 subsequent trials.
+
 \section{Evaluation}
 
 \subsection{COO vs CSR}
@@ -307,6 +322,9 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
 
 Not really sure if I can say anything here\dots
 
+
+\textcolor{green}{TODO: heat map of results: nnz per row: 16, 64, 256, 1024, PE grid dim: 64, 128, 256, 384, 512, matrix nrows:8192,32768, 131072,524288, 2097152 }
+
 \subsection{SuiteSparse Breakdown}
 Breakdown of performance by phase and by communication vs computation in Figure \ref{fig:suite-sparse-comm-model}
 Note that the number of nnzs corresponds exactly to the compute time.
@@ -340,9 +358,21 @@ both runtime and throughput plots (maybe throughput put Triad throughput as comp
 \end{figure}
 
 
+\section{Future Work}
+\begin{itemize}
+    \item \cite{gao2024systematicliteraturesurveysparse} mentions new compression formats (besides COO and CSR) which might provide better 2D decomposition load balance.
+    \item \cite{PIM-spaceA} architecture for PIM. gao paper mentions: "From a
+          software perspective, they design a mapping scheme for sparse
+          matrices to achieve workload balance and exploit the locality
+          of the multiplied vector. A key optimization idea in the mapping scheme is the assignment of rows with similar column
+          index patterns to the same processing element (PE). "
+
+\end{itemize}
+
 
 \section{Conclusion}
 
-\bibliography{main}
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}
