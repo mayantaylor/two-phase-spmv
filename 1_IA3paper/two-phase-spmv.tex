@@ -221,9 +221,12 @@ We evaluate our SpMV algorithm and communication model on a WSE-3 in 32-bit floa
 are made with a cuSparse implementation evaluated on a single H200.
 \subsection{Matrix Selection}
 We evaluate on two classes of matrices: custom randomly generated matrices and a selection of matrices from SuiteSparse.
-The randomly generated matrices are tunable based on matrix size and number of nonzeros. Nonzeros are placed uniformly at random.
 
-A selection of SuiteSparse matrices is chosen for evaluation to capture SpMV performance on more real world use-cases
+The randomly generated matrices are tunable based on matrix size and number of nonzeros. In particular, we use a suite of randomly generated matrices, wherein nonzeros are placed uniformly throughout, varying the number of nonzeros per row and number of rows. This set of matrices are referred to as the RandomSuite matrices.
+
+To evaluate the impact of structure in this synthetic setting, we also generate a set of random matrices with a fixed number of nonzeros per row but varying distribution of those nonzeros, from tightly packed around the diagonal out to uniformly spread. This is referred to as the DiagSpectrumSuite.
+
+Lastly, we choose a selection of SuiteSparse matrices to capture SpMV performance on more real world use-cases
 across a variety of applications, structures, and sizes. Our selection is outlined in Table \ref{tab:suite_sparse_matrices}.
 \input{data/suite_sparse_matrices.tex}
 
@@ -242,7 +245,8 @@ On our selection, this configuration achieves up to a 1.3x speedup over the defa
 \section{Evaluation}
 
 \subsection{COO vs CSR}
-In all subsequent evaluation, we use COO.
+Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats under two scaling configurations. CSR is consistently slower than COO but particularly suffers when scaling the number of rows. This is likely related to the nested for loop structure of the CSR algorithm and the fact that the Tungsten compiler is still under development. It is possible that later iterations of the compiler will resolve these issues and necessiate a new comparison of matrix formats. For our present work, we use COO moving forward.
+
 \label{sec:coovscsr}
 \begin{figure}[]
     \centering
@@ -338,15 +342,14 @@ Note that the number of nnzs corresponds exactly to the compute time.
 \subsection{GPU Comparison}
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
 
-GPU comparison is a datapoint, not 'comparison'. Other factors like writing custom gpu kernels and power draw
-use default cusparse CSR and collect all the cusparse configurations
+In this section, we evaluate the WSE SpMV algorithm against a CuSparse implementation on a single Nvidia H200.
+This GPU comparison serves as a baseline and reference datapoint, not a strict comparison for the sake of demonstrating superiority of one algorithm or architecture over the other. Such a comparison would necessitate a more comprehensive analysis of power draw differences and a pass over various GPU implementations, including possibly custom kernels. We note that the fashion in which the WSE algorithm loads the full matrix into fast local memory first might be more comparable to a GPU implementation that uses entirely shared memory. A more thorough comparison accounting for these points is left for future work.
 
+We first evaluate the GPU across our RandomSuite space varying the number of nonzeros per row and the number of rows. Figure \ref{fig:gpu-vs-wse-varydensity} shows the throughput achieved for increasing matrix size on the H200 and WSE. \textcolor{green}{TODO: WSE RandomSuite results}
 
-1. the impact of structure (same number of nnz)
-2. suite sparse performance
-both runtime and throughput plots (maybe throughput put Triad throughput as comparison)
+To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
 
-\textcolor{green}{TODO: the suite sparse matrices have substantially little nnz per row. do a scaling comparison with randomly generated matrices to look at larger nnz per row}, performance across randomly generate matrices,
+Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. We note that speedup is inversly correlated with load imbalance ratio, suggesting that particularly for matrices where the WSE is relatively slow, deriving new mapping strategies to minimize load imbalance is likely to greatly improve speedup. The WSE performs the best in comparison to the GPU on the kron\_g500-logn17 matrix, a relatively dense and unstructured multigraph representation. It performs the worst on the atmosmodl matrix, due to large load imbalance likely caused by the matrix's tridiagonal pattern. Interestingly, both matrices have a similar number of nonzeros. They are visualized in Figure \ref{fig:spyplots}.
 
 \begin{figure*}[htbp]
     \centering
@@ -361,7 +364,27 @@ both runtime and throughput plots (maybe throughput put Triad throughput as comp
         \caption{WSE Throughput}
     \end{subfigure}
     \caption{Throughput for various row densities, increasing matrix size. Comparison for H200 and WSE3.}
+    \label{fig:gpu-vs-wse-varydensity}
+
 \end{figure*}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/atmosmodl_spy.pdf}
+        \caption{atmosmodl}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/kron_g500-logn17_spy.pdf}
+        \caption{kron\_g500}
+    \end{subfigure}
+    \caption{}
+    \label{fig:spyplots}
+
+\end{figure}
 
 
 \begin{figure}
