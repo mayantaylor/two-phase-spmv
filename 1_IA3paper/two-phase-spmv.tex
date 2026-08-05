@@ -198,6 +198,8 @@ To use the 1D collectives, the matrix must be distributed in a row and column lo
 \textbf{Matrix Mappings:}
 We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, within the constraint of RCL. In this work, we explore three mappings: blocked, cyclic, and random. The blocked mapping does a basic 2D blocked decomposition of the rows and columns of $A$. This mapping is perhaps the easiest to visualize, but often produces large load imbalance across PEs, especially when the matrix has some sort of structure. The cyclic and random mappings attempt to address this problem by partitioning rows and columns either cyclically (round-robin fashion) or randomly.
 
+\textcolor{green}{TODO: cyclic uses coprime distribution! mention this and say why}
+
 
 \subsection{Dataflow Algorithm}
 Assuming that the matrix $A$ is distributed on the 2D mesh under a mapping that preserves row and column locality, the SpMV can be conceptually
