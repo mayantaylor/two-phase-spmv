@@ -68,10 +68,11 @@ all_matrix_files = sorted(all_matrix_files, key=lambda n: (nrows_map.get(n) is N
 
 # Labels include abbreviated name + row count when available
 x_map = {name: i for i, name in enumerate(all_matrix_files)}
-x_labels = [f"{abbreviate_matrix_file(name)}\n{(nrows_map.get(name) if nrows_map.get(name) is not None else '?')} rows" for name in all_matrix_files]
 
 # Keep rows with valid capacity
 df = manifest_df.dropna(subset=["NNZ_CAPACITY"]).copy()
+x_labels = [name.replace('.npz', '') for name in all_matrix_files]
+
 df["x"] = df["matrix_file"].map(x_map)
 
 # Identify which datapoints have results
@@ -104,7 +105,7 @@ if split_matrix in x_map:
     )
     
 # Plot
-plt.figure(figsize=(14, 8))
+plt.figure(figsize=(10, 6))
 
 
 # Base layer: all points
@@ -135,11 +136,10 @@ plt.axhline(y=7800, color="black", linestyle="--", linewidth=1, zorder=1)
 plt.axvline(x=split_x, color="black", linewidth=1.5, zorder=1)
 
 
-plt.xticks(range(len(all_matrix_files)), x_labels, rotation=45, ha="right")
-plt.xlabel("Matrix File")
-plt.ylabel("NNZ_CAPACITY")
+plt.xticks(range(len(all_matrix_files)), x_labels, rotation=45, ha="right", fontsize=16)
+plt.yticks(fontsize=16)
+plt.ylabel("max nnz count", fontsize=20)
 plt.yscale('log')
-plt.title("Mappings by Matrix File and NNZ_CAPACITY")
 plt.grid(True, linestyle="--", alpha=0.3)
 plt.xlim(-0.5, len(all_matrix_files) - 0.5)
 
@@ -151,11 +151,11 @@ mapping_legend = [
            markerfacecolor=mapping_color_map[mapping], markersize=10)
     for mapping in unique_mappings
 ]
-mapping_legend.append(Line2D([0], [0], marker='*', color='w', label="Has results",
+mapping_legend.append(Line2D([0], [0], marker='*', color='w', label="Evaluated",
                              markerfacecolor='gray', markersize=15, markeredgecolor='red', markeredgewidth=2))
 
 
-plt.legend(handles=mapping_legend, title="Mapping")
+plt.legend(handles=mapping_legend, title="Mapping", fontsize=16)
 plt.tight_layout()
 
 

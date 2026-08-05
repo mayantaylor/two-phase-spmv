@@ -230,7 +230,7 @@ We implement two standard matrix storage formats: CSR and COO. These dictate onl
 The COO algorithm \ref{alg:coo} avoids the nested for loop of the CSR algorithm \ref{alg:csr} and is therefore apparently friendlier to the Tungsten compiler.
 On the other hand, COO replaces the $Aptr$ data structure, which has length corresponding to the number of local rows, with
 a rowids data structure with an entry for each non-zero, potentially contributing to memory pressure depending on the sparsity structure of the matrix.
-In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much more efficient than CSR and we therefore use COO throughout the rest of this work.
+In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much more efficient than CSR.
 
 \begin{algorithm}
     \caption{SpMV Kernel in CSR Format}
@@ -260,6 +260,7 @@ In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much 
 \end{algorithm}
 
 \section{Modeling SpMV}
+We present a communication model for SpMV based on the 1D collective models.
 \textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
 \subsection{Communication}
 \begin{enumerate}
@@ -406,12 +407,12 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
 
 
 
-\begin{figure*}
+\begin{figure}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_manifest.pdf}
     \caption{Parameter space evalutation of suite-sparse selection.}
     \label{fig:suite-sparse-parameters}
-\end{figure*}
+\end{figure}
 
 
 \subsection{SuiteSparse Breakdown}
@@ -424,7 +425,7 @@ Note that the number of nnzs corresponds exactly to the compute time.
     \label{fig:suite-sparse-comm-model}
 \end{figure}
 
-\textcolor{green}{TODO: run suite sparse on 384 and 256 pe grid sizes as well. the parameter space analysis suggests that these might perform better}
+\textcolor{green}{TODO: mention 384 and 256 pe grid sizes as well. the parameter space analysis suggests that these might perform better}
 
 \subsection{GPU Comparison}
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
