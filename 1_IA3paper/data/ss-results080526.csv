@@ -1,0 +1,20 @@
+name,artifact_dir,nrows,ncols,matrix_nrows,matrix_ncols,nnz_max_capacity,max_time,min_time,max_chain_time,min_chain_time,passed,status,failed_step,error_type,returncode,saved_make_log,cli_tail
+Chebyshev4.080526.384x384.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/Chebyshev4.080526.384x384.cyclic,384,384,68121,68121,375,15005.0,9046.0,9034.0,250.0,True,ok,,,,,
+radiation.080526.384x384.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/radiation.080526.384x384.cyclic,384,384,223104,223104,655,22178.0,16021.0,15754.0,538.0,True,ok,,,,,
+com-Youtube.080526.384x384.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/com-Youtube.080526.384x384.cyclic,,,,,,,,,,,skipped,,,,,
+crankseg_1.080526.384x384.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/crankseg_1.080526.384x384.cyclic,384,384,52804,52804,214,10707.0,7367.0,5170.0,922.0,False,error,driver,RuntimeError,,/projects/cerebras/sandbox/maytayl/groc-scratch-summer26/spmv/spmv32/scripts/saved_make_logs/004_crankseg_1.080526.384x384.cyclic_make-log,"FAIL: float32 mismatch(es) found
+  idx 27204: got=-8.730133057, ref=-8.501953125, absdiff=0.228179932
+  idx 37982: got=44.562500000, ref=40.988281250, absdiff=3.574218750"
+kron_g500-logn17.080526.384x384.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/kron_g500-logn17.080526.384x384.cyclic,384,384,131072,131072,227,11232.0,7946.0,5482.0,274.0,True,ok,,,,,
+Chebyshev4.080526.384x384.random,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/Chebyshev4.080526.384x384.random,,,,,,,,,,,skipped,,,,,
+radiation.080526.384x384.random,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/radiation.080526.384x384.random,,,,,,,,,,,skipped,,,,,
+com-Youtube.080526.384x384.random,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/com-Youtube.080526.384x384.random,384,384,1134890,1134890,174,15701.0,13175.0,4210.0,250.0,True,ok,,,,,
+crankseg_1.080526.384x384.random,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/crankseg_1.080526.384x384.random,,,,,,,,,,,skipped,,,,,
+kron_g500-logn17.080526.384x384.random,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/kron_g500-logn17.080526.384x384.random,,,,,,,,,,,skipped,,,,,
+Chebyshev4.080526.256x256.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/Chebyshev4.080526.256x256.cyclic,256,256,68121,68121,573,17738.0,8137.0,13786.0,994.0,True,ok,,,,,
+radiation.080526.256x256.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/radiation.080526.256x256.cyclic,256,256,223104,223104,1012,29869.0,24655.0,24322.0,1570.0,True,ok,,,,,
+com-Youtube.080526.256x256.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/com-Youtube.080526.256x256.cyclic,256,256,1134890,1134890,310,18740.0,15868.0,7474.0,922.0,True,ok,,,,,
+crankseg_1.080526.256x256.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/crankseg_1.080526.256x256.cyclic,256,256,52804,52804,368,12345.0,7941.0,8866.0,2482.0,False,error,driver,RuntimeError,,/projects/cerebras/sandbox/maytayl/groc-scratch-summer26/spmv/spmv32/scripts/saved_make_logs/014_crankseg_1.080526.256x256.cyclic_make-log,"FAIL: float32 mismatch(es) found
+  idx 3982: got=43.093750000, ref=40.988281250, absdiff=2.105468750
+  idx 40806: got=-8.820312500, ref=-8.501953125, absdiff=0.318359375"
+kron_g500-logn17.080526.256x256.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/kron_g500-logn17.080526.256x256.cyclic,256,256,131072,131072,423,14661.0,9043.0,10186.0,1066.0,True,ok,,,,,
