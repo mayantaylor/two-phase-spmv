@@ -290,6 +290,8 @@ The goal is to evaluate the accuracy of the performance model under the assumpti
 Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices.
 these plots use the randomly generated matrices, no need to talk about load imbalance yet
 
+Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. For the smallest matrix, with 8192 rows and
+
 
 \begin{figure}
     \centering
@@ -336,12 +338,24 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
     BIG IDEA 2: how do we make decisions about layout and resources for optimal performance?
 }
 
-Mapping a given matrix to the WSE SpMV algorithm requires (1) selecting the matrix mapping, and (2) selecting the PE grid size.
+Mapping a given matrix to the WSE SpMV algorithm requires (1) selecting the matrix layout, and (2) selecting the PE grid size.
 To analyze this second aspect, we evaluate a set of matrices from our RandomSuite at different PE gridsizes. Figure \ref{fig:randsuite-wse-heatmap} visualizes the exploration space of RandomSuite, from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
+
+While this evaluation can be abstracted to more general matrices, we are interested in how well our communication model captures these trends.
+
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{figures/matrix-space-wse.pdf}
-    \caption{Heatmap of RandSuite configurations space, showing the optimal square PE gridsize. The top right entries of the evaluation space are infeasible to run on the WSE due to PE local memory constraints.}
+
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/matrix-space-wse.pdf}
+    \end{subfigure}
+
+    \hspace{-1cm}%
+    \begin{subfigure}{0.35\textwidth}
+        \includegraphics[width=\linewidth]{figures/matrix-space-wse-mincomm.pdf}
+    \end{subfigure}
+    \caption{Heatmap of RandSuite configurations space, showing the optimal square PE gridsize (top) against the communication model predictions (bottom). The top right entries of the evaluation space are infeasible to run on the WSE due to PE local memory constraints.}
     \label{fig:randsuite-wse-heatmap}
 \end{figure}
 
