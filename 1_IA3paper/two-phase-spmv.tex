@@ -14,6 +14,23 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
+\usepackage[most]{tcolorbox}
+
+\tcbset{
+    parambox/.style={
+        colback=gray!5,
+        colframe=black,
+        boxrule=0.5pt,
+        arc=2mm,
+        left=2mm,
+        right=2mm,
+        top=1mm,
+        bottom=1mm,
+        fonttitle=\bfseries,
+        title=Notation
+    }
+}
+
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -64,15 +81,18 @@
 \section{Introduction}
 \begin{enumerate}
     \item The broad goal: explore general unstructured sparse operations on dataflow.
-    \item We approach this problem through 1D collectives (easy to model and understand) and spmv (simple but performance very connected to sparsity structure, and easy to map to the 1D collectives)
+    \item Why SpMV
+    \item We approach the algorithm design through 1D collectives
+    \item We extrapolate the performance modeling of the 1D collectives to a communication model for SpMV
+    \item Then we evaluate both model and algorithm
 \end{enumerate}
 The big ideas:
 \begin{enumerate}
+    \item what is the algorithm for SpMV on the WSE? paramters: matrix, mapping (blocked, cyclic, random), sparse layout (coo, csr), PE grid size
     \item what is the performance model and what are its shortcomings
-    \item  is the performance model accurate
-    \item  how do we make decisions about layout and resources for optimal performance?
-    \item lower and upper performance bounds?
-    \item is the spmv performant? compare to GPU
+    \item evaluation: is the performance model accurate
+    \item evaluation: how well does the performance model enable us to make decisions about layout and resources for optimal performance?
+    \item evaluation: is the spmv performant? compare to GPU
 \end{enumerate}
 
 \section{Background}
@@ -87,6 +107,28 @@ reducing overall communication costs through specific matrix
 partitioning or reordering techniques, as well as overlapping
 computation and communication processes"
 \section{1D Collectives}
+Luczynski et al. orinally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in \ref{tab:notation}, where $B$ and $P$ represent the same concepts as in the original paper. Note that here we understand $B$ slightly differently. Instead of referring to it as the vector size per PE, we understand $B$ as the number of consecutive vectors that are operated on. In this sense, it can be interpreted as the number of pipelined iterations of broadcast or reduction.
+
+In the original presentation of these collectives, Luczynski et al. also develop a performance model for them. This performance model is based on the parameters $P$ and $B$ and an additional variable $T_{ramp}$, the ramp latency. Specifically, $T_{ramp}$ captures the latency between message arrive on a PE at the router to that message being received by the compute engine.
+
+We build on Luczynski et al. by (1) implementing the collectives in Tungsten and Paint, and (2) updating the performance model.
+
+\begin{table}[t]
+    \caption{Notation}
+    \centering
+    \begin{tabular}{ll}
+        \hline
+        Symbol     & Description                       \\
+        \hline
+        $P$        & Length of the PE column or row    \\
+        $B$        & Number of consecutive collectives \\
+        \hline
+        $T_{ramp}$ & Ramp latency                      \\
+        $T_{ret}$  & Reticle crossing overhead         \\
+    \end{tabular}
+    \label{tab:notation}
+\end{table}
+
 \begin{enumerate}
     \item Luczynski et al presents the chain reduce and multicast broadcast that we use.
     \item They also present performance model
@@ -95,6 +137,7 @@ computation and communication processes"
 \end{enumerate}
 
 \subsection{Pairwise Pingpong}
+Before building the full collectives, we evaluate a pair-wise pingpong benchmark to capture the communication latencies between PEs.
 \begin{enumerate}
     \item Pairwise pingpong benchmark highlights the immediate neighbor communication latency.
     \item Also highlights the reticle boundary crossing.
@@ -103,7 +146,9 @@ computation and communication processes"
     \item Takeaway: PE to PE latency = 2, across reticle 9 additional cycles
 \end{enumerate}
 
+
 \subsection{Broadcast}
+\textcolor{green}{TODO: explain the performance model in terms of a throughput and latency term}
 \begin{enumerate}
     \item We increase the latency term from $P$ in Luczynski et al to $2P$.
     \item This model is more accurate and also correspons with the 2 cycle PE to PE latency above.
