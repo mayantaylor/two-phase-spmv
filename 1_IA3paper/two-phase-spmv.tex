@@ -21,7 +21,20 @@
 
 \title{A Two-Phase Dataflow Algorithm for SpMV on the Cerebras Wafer-Scale Engine\\
 
-    \thanks{Identify applicable funding agency here. If none, delete this.}
+    \thanks{This material is based upon work supported by the U.S. Department of
+        Energy, Office of Science, Office of Advanced Scientific Computing Research, Department of
+        Energy Computational Science Graduate Fellowship under Award Number DE-SC0025528. This report was prepared as an account of work sponsored by an agency of the
+        United States Government. Neither the United States Government nor any agency thereof, nor
+        any of their employees, makes any warranty, express or implied, or assumes any legal liability
+        or responsibility for the accuracy, completeness, or usefulness of any information, apparatus,
+        product, or process disclosed, or represents that its use would not infringe privately owned
+        rights. Reference herein to any specific commercial product, process, or service by trade name,
+        trademark, manufacturer, or otherwise does not necessarily constitute or imply its
+        endorsement, recommendation, or favoring by the United States Government or any agency
+        thereof. The views and opinions of authors expressed herein do not necessarily state or reflect
+        those of the United States Government or any agency thereof
+
+    }
 }
 
 \author{\IEEEauthorblockN{Maya Taylor, Luke Olson}
@@ -320,13 +333,17 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
 
 \subsection{Configuration Selection}
 \textcolor{red}{
-    BIG IDEAS 2 and 3: how do we make decisions about layout and resources for optimal performance?
-    lower and upper performance bounds for a given matrix/matrix type?
+    BIG IDEA 2: how do we make decisions about layout and resources for optimal performance?
 }
 
-
-
-\textcolor{green}{TODO: heat map of results: nnz per row: 16, 64, 256, 1024, PE grid dim: 64, 128, 256, 384, 512, matrix nrows:8192,32768, 131072,524288, 2097152 }
+Mapping a given matrix to the WSE SpMV algorithm requires (1) selecting the matrix mapping, and (2) selecting the PE grid size.
+To analyze this second aspect, we evaluate a set of matrices from our RandomSuite at different PE gridsizes. Figure \ref{fig:randsuite-wse-heatmap} visualizes the exploration space of RandomSuite, from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/matrix-space-wse.pdf}
+    \caption{Heatmap of RandSuite configurations space, showing the optimal square PE gridsize. The top right entries of the evaluation space are infeasible to run on the WSE due to PE local memory constraints.}
+    \label{fig:randsuite-wse-heatmap}
+\end{figure}
 
 \subsection{SuiteSparse Breakdown}
 Breakdown of performance by phase and by communication vs computation in Figure \ref{fig:suite-sparse-comm-model}
