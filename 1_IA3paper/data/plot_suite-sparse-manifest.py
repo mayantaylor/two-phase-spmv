@@ -10,12 +10,17 @@ except Exception:
     sp_sparse = None
 
 # Input files
-manifest_csv = "suite-sparse-manifest073026.csv"
-results_csv = "suite-sparse-results080326-coo.csv"
+manifest_csv = "ss-results/073026csr-manifest.csv"
+results_csv = "ss-results/080326coo-512cyclic.csv"
+coprime_csv = "ss-results/080526coo-coprimes512_256.csv"
+
+
 
 # Read CSVs
 manifest_df = pd.read_csv(manifest_csv)
 results_df = pd.read_csv(results_csv)
+coprime_df = pd.read_csv(coprime_csv)
+
 
 # Required columns
 manifest_required = {"matrix_file", "mapping", "enabled"}
@@ -35,6 +40,10 @@ manifest_df["enabled"] = manifest_df["enabled"].astype(str).str.strip()
 # Normalize results CSV matrix_file for matching
 results_df["matrix_file"] = results_df["name"].astype(str).str.split('.').str[0] + ".npz"
 results_df["mapping"] = results_df["name"].astype(str).str.split('.').str[-1]
+
+coprime_df["matrix_file"] = results_df["name"].astype(str).str.split('.').str[0] + ".npz"
+coprime_df["mapping"] = "coprime-cyclic"
+results_df = pd.concat([results_df, coprime_df])
 
 
 # Abbreviate labels
@@ -69,21 +78,25 @@ all_matrix_files = sorted(all_matrix_files, key=lambda n: (nrows_map.get(n) is N
 # Labels include abbreviated name + row count when available
 x_map = {name: i for i, name in enumerate(all_matrix_files)}
 
-# Keep rows with valid capacity
-df = manifest_df.dropna(subset=["NNZ_CAPACITY"]).copy()
-x_labels = [name.replace('.npz', '') for name in all_matrix_files]
-
-df["x"] = df["matrix_file"].map(x_map)
-
-# Identify which datapoints have results
-has_results = df.set_index(["matrix_file", "mapping"]).index.isin(
-    results_df.set_index(["matrix_file", "mapping"]).index
+capacity_df = (
+    manifest_df[["matrix_file", "mapping", "NNZ_CAPACITY"]]
+    .rename(columns={"NNZ_CAPACITY": "nnz_max_capacity"})
 )
 
-df["has_results"] = has_results
+df = results_df.merge(
+    capacity_df,
+    on=["matrix_file", "mapping"],
+    how="left"
+)
+# Keep rows with valid capacity
+df["x"] = df["matrix_file"].map(x_map)
+
+x_labels = [name.replace('.npz', '') for name in all_matrix_files]
+
+
 
 # Colors by mapping
-unique_mappings = list(df["mapping"].drop_duplicates())
+unique_mappings = ['blocked', 'cyclic', 'random', 'coprime-cyclic']
 cmap = plt.get_cmap("tab10")
 mapping_color_map = {
     mapping: cmap(i % 10) for i, mapping in enumerate(unique_mappings)
@@ -110,25 +123,11 @@ plt.figure(figsize=(10, 6))
 
 # Base layer: all points
 plt.scatter(
-    df[~df["has_results"]]["x"],
-    df[~df["has_results"]]["NNZ_CAPACITY"],
-    c=df[~df["has_results"]]["color"],
-    s=80,
-    zorder=2,
-    label="No results"
-)
-
-# Highlight layer: points with results
-plt.scatter(
-    df[df["has_results"]]["x"],
-    df[df["has_results"]]["NNZ_CAPACITY"],
-    c=df[df["has_results"]]["color"],
-    s=150,
-    marker="*",
-    edgecolors="red",
-    linewidths=2,
-    zorder=3,
-    label="Has results"
+    df["x"],
+    df["nnz_max_capacity"],
+    c=df["color"],
+    s=100,
+    zorder=3
 )
 
 # Threshold lines

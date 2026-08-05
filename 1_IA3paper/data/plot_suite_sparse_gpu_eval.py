@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Read the CSV file
-df = pd.read_csv('suite_sparse_gpu_eval.csv')
-df_coo = pd.read_csv('suite_sparse_gpu_eval-coo.csv')
+df = pd.read_csv('ss-results/073026csr-gpu_eval.csv')
+df_coo = pd.read_csv('ss-results/080326coo-gpu_eval.csv')
 
 # Extract the last part of the matrix path (filename)
 df['matrix_name'] = df['matrix_path'].str.split('/').str[-1]

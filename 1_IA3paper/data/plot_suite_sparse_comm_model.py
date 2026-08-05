@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
-new_results_df = pd.read_csv('ss-results080526.csv')
+results_df = pd.read_csv('ss-results/080326coo-512cyclic.csv')
+new_results_df = pd.read_csv('ss-results/080526coo-256_384.csv')
 
 # Combine both dataframes
 combined_df = pd.concat([results_df, new_results_df], ignore_index=True)

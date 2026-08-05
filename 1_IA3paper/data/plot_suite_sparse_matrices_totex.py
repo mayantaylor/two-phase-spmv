@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv("suite_sparse_matrices.csv")
+df = pd.read_csv("ss-results/matrix-stats.csv")
 
 # Remove empty columns from CSV export
 df = df.dropna(axis=1, how='all')
@@ -27,5 +27,5 @@ latex = f"""
 \\end{{table*}}
 """
 
-with open("suite_sparse_matrices.tex", "w") as f:
+with open("../figures/suite_sparse_matrices.tex", "w") as f:
     f.write(latex)

@@ -4,10 +4,10 @@ import numpy as np
 import os
 
 
-df = pd.read_csv('suite_sparse_gpu_eval-coo.csv')
+df = pd.read_csv('ss-results/080326coo-gpu_eval.csv')
 
-results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
-new_results_df = pd.read_csv('ss-results080526.csv')
+results_df = pd.read_csv('ss-results/080326coo-512cyclic.csv')
+new_results_df = pd.read_csv('ss-results/080526coo-256_384.csv')
 
 # Combine both dataframes
 wse_results_df = pd.concat([results_df, new_results_df], ignore_index=True)
