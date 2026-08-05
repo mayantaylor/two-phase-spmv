@@ -16,22 +16,21 @@ df['bcast-model'] =  256 + 2 * (df['nPEs'] + 2) + df['reticle-overhead']
 df['old-reduce-model'] = 256 + 12 * (df['nPEs'] + 1)
 df['old-bcast-model'] =  256 + (df['nPEs'] + 2) 
 
-plt.plot(df['nPEs'], df['reduce'] / 1100 , marker='o', linewidth=2, label='Reduce', color='red')
-plt.plot(df['nPEs'], df['reduce-model'] / 1100, linewidth=2, label='Reduce Model', color='red', linestyle='--')
-plt.plot(df['nPEs'], df['old-reduce-model'] / 1100, linewidth=2, label='Luczynski Reduce Model', color='black', linestyle='--')
+plt.plot(df['nPEs'], df['reduce'] / 1000 , marker='o', linewidth=2, label='Reduce', color='red')
+plt.plot(df['nPEs'], df['reduce-model'] / 1000, linewidth=2, label='Reduce Model', color='red', linestyle='--')
 
-plt.plot(df['nPEs'], df['bcast-tomem'] / 1100, marker='o', linewidth=2, label='Broadcast', color='blue')
-plt.plot(df['nPEs'], df['bcast-model'] / 1100, linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
-plt.plot(df['nPEs'], df['old-bcast-model']  / 1100, linewidth=2, label='Luczynski Bcast Model', color='black', linestyle='--')
+plt.plot(df['nPEs'], df['bcast-tomem'] / 1000, marker='o', linewidth=2, label='Broadcast', color='blue')
+plt.plot(df['nPEs'], df['bcast-model'] / 1000, linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
+plt.plot(df['nPEs'], df['old-bcast-model']  / 1000, linewidth=2, label='Luczynski Broadcast Model', color='black', linestyle='--')
 
-
-plt.xlabel('nPEs')
-plt.ylabel('Time (clock cycles)')
-plt.title('1D Collectives Scaling P')
+plt.xlabel('P', fontsize=20)
+plt.ylabel('Time (µs)', fontsize=20)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
 plt.xscale('log', base=2)
-plt.legend()
+plt.legend(fontsize=20)
 
 plt.savefig('../figures/collectives_scaleP.pdf', dpi=300, format='pdf')

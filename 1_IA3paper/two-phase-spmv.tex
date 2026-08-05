@@ -15,19 +15,21 @@
 \usepackage{algpseudocode}
 
 \usepackage[most]{tcolorbox}
+\usepackage{amsmath}
 
 \tcbset{
-    parambox/.style={
-        colback=gray!5,
-        colframe=black,
-        boxrule=0.5pt,
+    equationbox/.style={
+        enhanced,
+        colback=black!3,
+        colframe=black!60!black,
+        boxrule=0.6pt,
         arc=2mm,
         left=2mm,
         right=2mm,
         top=1mm,
         bottom=1mm,
-        fonttitle=\bfseries,
-        title=Notation
+        title=Comparison,
+        fonttitle=\bfseries
     }
 }
 
@@ -111,61 +113,78 @@ Luczynski et al. orinally present a set of 1D and 2D collectives implemented in 
 
 In the original presentation of these collectives, Luczynski et al. also develop a performance model for them. This performance model is based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrive on a PE at the router to that message being received by the compute engine.
 
-We build on Luczynski et al. by (1) implementing the collectives in Tungsten and Paint, and (2) updating the performance model. Additionally, we introduce a new parameter $S$, the single-hop latency between PEs, from router to router. While this paramter clearly plays in to the results in earlier work, it has not yet been explicitly named.
+We build on Luczynski et al. by (1) implementing the collectives in Tungsten and Paint, and (2) updating the performance model. Additionally, we introduce a new parameter $S$, the single-hop latency between PEs, from router to router. While this paramter clearly plays in to the results in earlier work, it has not yet been explicitly named. Additionally, we highlight the extra latency between PEs at reticle boundaries, $S_{ret}$, and factor it in to our updated performance modeling in addition to a parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
 
+Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. In evaluation of our collectives, we find $T_r = 5$ and $S = 2$. Results from a pingpong benchmark give us $S_{ret} = 9$.
 
 \begin{table}[t]
     \caption{Notation}
     \centering
     \begin{tabular}{ll}
         \hline
-        Symbol    & Description                       \\
+        Symbol    & Description                          \\
         \hline
-        $P$       & Length of the PE column or row    \\
-        $B$       & Number of consecutive collectives \\
+        $P$       & Length of the PE column or row       \\
+        $B$       & Number of consecutive collectives    \\
         \hline
-        $T_r$     & Ramp latency                      \\
-        $S$       & PE-to-PE latency                  \\
-        $S_{ret}$ & Reticle crossing overhead         \\
+        $T_r$     & Ramp latency                         \\
+        $S$       & PE-to-PE latency                     \\
+        $S_{ret}$ & Reticle crossing overhead            \\
+        $C$       & Number of reticle boundaries crossed
     \end{tabular}
     \label{tab:notation}
 \end{table}
 
-\subsection{Parameter Study}
-Before building the full collectives, we evaluate a pair-wise pingpong benchmark to capture the communication latencies between PEs and understand the ramp latency.
+% \subsection{Parameter Study}
+% Before building the full collectives, we evaluate a pair-wise pingpong benchmark to capture the communication latencies between PEs and understand the ramp latency.
 
-Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. Our pingpong results show a full round trip requires 14 cycles, which includes 2 ramp traversals from CE to router, 2 from router to CE, and 2 PE-to-PE traversals. In the additional context of our collective performance (discussed below), we estimate $T_r$ around 2 to 3 cycles, $S = 2$. Moving forward, we use $T_r = 2.5$ and note that it is possible the two ramp directions perform slightly differently, averaging out at $2.5$.
 
-\subsection{Broadcast}
-\textcolor{green}{TODO: explain the performance model in terms of a throughput and latency term}
-\begin{enumerate}
-    \item We increase the latency term from $P$ in Luczynski et al to $2P$.
-    \item This model is more accurate and also correspons with the 2 cycle PE to PE latency above.
-    \item Also add a reticle overhead term, based on how many reticles are crossed.
-\end{enumerate}
 
-\subsection{Reduction}
-\begin{enumerate}
-    \item The model stays the same except $T_r$ and reticle term
-    \item Matches super well!
-\end{enumerate}
+% for our collectives Our pingpong results show a full round trip requires 14 cycles, which includes 2 ramp traversals from CE to router, 2 from router to CE, and 2 PE-to-PE traversals. In the additional context of our collective performance (discussed below), we estimate $T_r$ around 2 to 3 cycles, $S = 2$. Moving forward, we use $T_r = 2.5$ and note that it is possible the two ramp directions perform slightly differently, averaging out at $2.5$.
 
-\subsection{Model Performance}
+% Additionally, the pingpong benchmark exposes a new latency factor not discussed in previous work. At reticle boundaries, an additional overhead of around 9 cycles is added to the PE-to-PE latency. We refer to this additional latency as $S_{ret}$ and factor it in to our updated performance modeling, in addition to a parameter $C$ which denotes the number of reticle boundaries crossed, and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
 
+The performance model for both collectives can be broken into a latency term and a throughput term. The latency term describes how long it takes a single iteration of broadcast or reduce to complete, and the throughput term describes how closely multiple iterations can be pipelined.
+Luczynski et al. use the model in Equation \ref{eq:oldbcast}. The throughput term $B$ indicates that broadcast pipelines perfectly, which matches our findings. However, the latency term doesn't account for the 2 cycle PE-to-PE latency $S$, marking the largest difference between our models. Our model in Equation \ref{eq:newbcast} also adds a reticle overhead term.
+
+For the reduction, we add a reticle boundary crossing term to the model developed by Luczynski et al. in Equation \ref{eq:oldred}. We also explitily include $S$ for our updated reduce model in Equation \ref{eq:newred}.
+
+
+\begin{tcolorbox}[equationbox,title={Collective Model Updates}]
+    \begin{equation}
+        M_{b} = B + P +  2T_r
+        \label{eq:oldbcast}
+    \end{equation}
+    \begin{equation}
+        M_{b}^* = B + S * P + 2 T_r + 9 C
+        \label{eq:newbcast}
+    \end{equation}
+    \begin{equation}
+        M_{r} = B + (2T_r + 2) P
+        \label{eq:oldred}
+    \end{equation}
+    \begin{equation}
+        M_{r}^* = B + (2T_r + S) P + 9C
+        \label{eq:newred}
+    \end{equation}
+\end{tcolorbox}
+
+Figure \ref{fig:collectives} illustrate how our updated models compare to the true collective performance, for both scaling of $B$ and $P$. For this evaluation, both collectives are implemented in Tungsten and Paint and evaluated on the WSE3. Cycle counts are converted to runtime assuming a 1GHz clock rate. Particularly, we demonstrate that our update to the latency term for the broadcast model aligns better with true performance.
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{figures/collectives_scaleB.pdf}
-        \caption{Evaluation of 1D collectives using a single row of 512 PEs.}
+        \includegraphics[width=\linewidth]{figures/collectives_scaleP.pdf}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{figures/collectives_scaleP.pdf}
-        \caption{Evaluation of 1D collectives on vector of size 256 (1KB).}
+        \includegraphics[width=\linewidth]{figures/collectives_scaleB.pdf}
     \end{subfigure}
-    \caption{Main caption}
+
+
+    \caption{Evaluation of the 1D collectives and corresponding performance models. Results scaling B are evaluated on a row of 512 PEs, and results scaling P set B=256.}
+    \label{fig:collectives}
 \end{figure}
 
 \section{Two-Phase SpMV}
