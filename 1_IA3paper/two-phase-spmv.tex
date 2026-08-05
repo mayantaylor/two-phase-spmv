@@ -396,10 +396,7 @@ The performance trends here suggest that if the SpMV implementation could be upd
     \label{fig:randomsuite-speedup}
 \end{figure}
 
-% TODO? maybe if there's need/space
-% To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
-
-Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. We note that speedup is inversly correlated with load imbalance ratio, suggesting that particularly for matrices where the WSE is relatively slow, deriving new mapping strategies to minimize load imbalance is likely to greatly improve speedup. The WSE performs the best in comparison to the GPU on the kron\_g500-logn17 matrix, a relatively dense and unstructured multigraph representation. It performs the worst on the atmosmodl matrix, due to large load imbalance likely caused by the matrix's tridiagonal pattern. Interestingly, both matrices have a similar number of nonzeros. They are visualized in Figure \ref{fig:spyplots}.
+Figure \ref{fig:gpu-vs-wse-varydensity} plots the same results from the RandomSuite but looks at how the GPU and WSE performance scale with the number of rows and density of the matrices.
 
 \begin{figure*}[htbp]
     \centering
@@ -411,12 +408,20 @@ Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Fig
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
+        \includegraphics[width=\linewidth]{figures/matrix-space-wse-tp.pdf}
         \caption{WSE Throughput}
     \end{subfigure}
     \caption{Throughput for various row densities, increasing matrix size. Comparison for H200 and WSE3.}
     \label{fig:gpu-vs-wse-varydensity}
 
 \end{figure*}
+
+
+% TODO? maybe if there's need/space
+% To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
+
+Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. We note that speedup is inversly correlated with load imbalance ratio, suggesting that particularly for matrices where the WSE is relatively slow, deriving new mapping strategies to minimize load imbalance is likely to greatly improve speedup. The WSE performs the best in comparison to the GPU on the kron\_g500-logn17 matrix, a relatively dense and unstructured multigraph representation. It performs the worst on the atmosmodl matrix, due to large load imbalance likely caused by the matrix's tridiagonal pattern. Interestingly, both matrices have a similar number of nonzeros. They are visualized in Figure \ref{fig:spyplots}.
+
 
 \begin{figure}[htbp]
     \centering
