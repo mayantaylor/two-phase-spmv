@@ -5,11 +5,21 @@ import os
 
 
 df = pd.read_csv('suite_sparse_gpu_eval-coo.csv')
+
 results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
+new_results_df = pd.read_csv('ss-results080526.csv')
+
+# Combine both dataframes
+wse_results_df = pd.concat([results_df, new_results_df], ignore_index=True)
+
+# Group by matrix name and take the row with minimum max_time for each matrix
+wse_results_df['matrix_name'] = wse_results_df['name'].astype(str).str.split('.').str[0]
+wse_results_df = wse_results_df.sort_values('max_time')
+wse_results_df = wse_results_df.drop_duplicates(subset=['matrix_name'], keep='first')
 
 # Extract the last part of the matrix path (filename)
 df['matrix_name'] = df['matrix_path'].str.split('/').str[-1]
-results_df['matrix_name'] = results_df['name'].astype(str).str.split('.').str[0] + ".npz"
+wse_results_df['matrix_name'] = wse_results_df['name'].astype(str).str.split('.').str[0] + ".npz"
 
 df = df.groupby('matrix_name').agg({
     'gpu_mean_ms': 'mean',
@@ -20,8 +30,8 @@ df = df.groupby('matrix_name').agg({
 
 df = df.sort_values('rows')
 
-# Merge with results_df to include comparison data
-df = df.merge(results_df[['matrix_name', 'max_time', 'nnz_max_capacity', 'nrows', 'ncols']], 
+# Merge with wse_results_df to include comparison data
+df = df.merge(wse_results_df[['matrix_name', 'max_time', 'nnz_max_capacity', 'nrows', 'ncols']], 
               on='matrix_name', how='left', suffixes=('', '_results'))
 df = df.dropna(subset=['max_time'])
 

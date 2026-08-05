@@ -4,60 +4,72 @@ import numpy as np
 import os
 
 results_df = pd.read_csv('suite-sparse-results080326-coo.csv')
+new_results_df = pd.read_csv('ss-results080526.csv')
 
-# Extract the last part of the matrix path (filename)
-results_df['matrix_name'] = results_df['name'].astype(str).str.split('.').str[0]
-results_df['reduce_model'] = results_df['matrix_nrows'] / results_df['nrows'] + 12 * (512 + 1) + np.floor((results_df['ncols'] + 2) / 64) * 9
-results_df['bcast_model'] = results_df['matrix_ncols'] / results_df['ncols'] + (512 + 2) + np.floor((results_df['nrows'] + 2) / 64) * 9
+# Combine both dataframes
+combined_df = pd.concat([results_df, new_results_df], ignore_index=True)
 
-results_df.sort_values('matrix_nrows', inplace=True)
+# Group by matrix name and take the row with minimum max_time for each matrix
+combined_df['matrix_name'] = combined_df['name'].astype(str).str.split('.').str[0]
+combined_df = combined_df.sort_values('max_time')
+combined_df = combined_df.drop_duplicates(subset=['matrix_name'], keep='first')
 
+# Calculate models
+combined_df['reduce_model'] = combined_df['matrix_nrows'] / combined_df['nrows'] + 12 * (combined_df['nrows'] + 1) + np.floor((combined_df['ncols'] + 2) / 64) * 9
+combined_df['bcast_model'] = combined_df['matrix_ncols'] / combined_df['ncols'] + (combined_df['nrows'] + 2) + np.floor((combined_df['nrows'] + 2) / 64) * 9
 
+combined_df.sort_values('matrix_nrows', inplace=True)
 
-results_df['nnz_max_capacity'] = pd.to_numeric(
-    results_df['nnz_max_capacity'], errors='coerce'
+combined_df['nnz_max_capacity'] = pd.to_numeric(
+    combined_df['nnz_max_capacity'], errors='coerce'
 )
-# Create figure with subplots
 
-x = np.arange(len(results_df))
+# Create figure with subplots
+x = np.arange(len(combined_df))
 width = 0.33
 fs = 20
 
 fig, ax1 = plt.subplots(figsize=(12, 8))
 ax2 = ax1.twinx()
 
-
 ax1.bar(
     x - width/2,
-    (results_df['reduce_model'] + results_df['bcast_model']) / 1000000,
+    (combined_df['reduce_model'] + combined_df['bcast_model']) / 1000000,
     width=width,
     color='tab:blue',
-    bottom=(results_df['max_chain_time']) / 1000000,
+    bottom=(combined_df['max_chain_time']) / 1000000,
     alpha=0.7,
     label='Comm model'
 )
 
 ax1.bar(
     x - width/2,
-    results_df['max_chain_time'] / 1000000,
+    combined_df['max_chain_time'] / 1000000,
     width=width,
     color='tab:green',
     alpha=0.7,
     label='Measured compute'
 )
 
-ax1.bar(
+bars = ax1.bar(
     x + width/2,
-    results_df['max_time'] / 1000000,
+    combined_df['max_time'] / 1000000,
     width=width,
     color='tab:orange',
     alpha=0.7,
     label='Total time'
 )
 
+# Add nrows labels on top of bars
+for i, (bar, nrows) in enumerate(zip(bars, combined_df['nrows'])):
+    height = bar.get_height()
+    ax1.text(bar.get_x() + bar.get_width()/2., height,
+            f'{int(nrows)}',
+            ha='center', va='bottom', fontsize=12, fontweight='bold')
+
 ax2.plot(
     x,
-    results_df['nnz_max_capacity'],
+    combined_df['nnz_max_capacity'],
     color='black',
     marker='o',
     linewidth=2,
@@ -77,13 +89,10 @@ ax1.tick_params(axis='y', labelsize=16)
 # Shared x-axis
 ax1.set_xlabel("Matrix", fontsize=fs)
 ax1.set_xticks(x)
-ax1.set_xticklabels(results_df['matrix_name'], rotation=45, ha='right', fontsize=fs)
-
-# Combine legends from both axes
+ax1.set_xticklabels(combined_df['matrix_name'], rotation=45, ha='right', fontsize=fs)
 
 plt.tight_layout()
 
-plt.tight_layout()
 os.makedirs('../figures', exist_ok=True)
 plt.savefig('../figures/suite_sparse_comm_model.pdf', format='pdf')
 plt.close()

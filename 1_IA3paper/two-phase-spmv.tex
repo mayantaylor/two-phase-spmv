@@ -295,6 +295,7 @@ Figure \ref{fig:scale-npes} compares the communication model to actual runtime f
 \textcolor{green}{TODO: mention that the max pe compute time very closely models the rest of the performance, and add it to the plot.}
 
 
+
 \begin{figure}
     \centering
     \centering
@@ -360,12 +361,12 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
 
 
 
-\begin{figure}
+\begin{figure*}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_manifest.pdf}
     \caption{Parameter space evalutation of suite-sparse selection.}
     \label{fig:suite-sparse-parameters}
-\end{figure}
+\end{figure*}
 
 
 \subsection{SuiteSparse Breakdown}
@@ -374,10 +375,11 @@ Note that the number of nnzs corresponds exactly to the compute time.
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_comm_model.pdf}
-    \caption{Performance evaluation of SpMV with model breakdown on the WSE for various matrices from the SuiteSparse collection.}
+    \caption{Performance evaluation of SpMV with model breakdown on the WSE for various matrices from the SuiteSparse collection. These results collected with 512x512 PE mesh.}
     \label{fig:suite-sparse-comm-model}
 \end{figure}
 
+\textcolor{green}{TODO: run suite sparse on 384 and 256 pe grid sizes as well. the parameter space analysis suggests that these might perform better}
 
 \subsection{GPU Comparison}
 \textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
