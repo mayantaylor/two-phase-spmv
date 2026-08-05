@@ -2,9 +2,9 @@
 FIGDIR := ../figures
 
 COLLECTIVE_FIGURES := collectives_scaleB collectives_scaleP
-RAND_EVAL_FIGURES := compare-coo random-scale-npes compare-coo-scalennz
+RAND_EVAL_FIGURES := compare-coo compare-coo-scalennz comm-accuracy
 SUITESPARSE_FIGURES := suite_sparse_manifest suite_sparse_gpu_comparison suite_sparse_comm_model suite_sparse_matrices suite_sparse_gpu_eval
-MATRIX_SPACE_FIGURES := matrix-space-gpu
+MATRIX_SPACE_FIGURES := matrix-space-gpu matrix-space-speedup matrix-space-wse matrix-space-comm matrix-space-wse-mincomm
 
 FIGURES := $(COLLECTIVE_FIGURES) $(SUITESPARSE_FIGURES) $(RAND_EVAL_FIGURES) $(MATRIX_SPACE_FIGURES)
 TARGETS := $(addprefix $(FIGDIR)/,$(addsuffix .pdf,$(FIGURES)))  
@@ -13,6 +13,9 @@ TARGETS := $(addprefix $(FIGDIR)/,$(addsuffix .pdf,$(FIGURES)))
 all: $(TARGETS)
 
 $(FIGDIR)/%.pdf: %.csv plot_%.py | $(FIGDIR)
+	python3 plot_$*.py
+
+$(FIGDIR)/%.pdf: plot_%.py | $(FIGDIR)
 	python3 plot_$*.py
 
 $(FIGDIR)/suite_sparse_manifest.pdf: suite-sparse-manifest073026.csv suite-sparse-results080326-coo.csv plot_suite-sparse-manifest.py
