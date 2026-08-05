@@ -235,9 +235,9 @@ are made with a cuSparse implementation evaluated on a single H200.
 \subsection{Matrix Selection}
 We evaluate on two classes of matrices: custom randomly generated matrices and a selection of matrices from SuiteSparse.
 
-The randomly generated matrices are tunable based on matrix size and number of nonzeros. In particular, we use a suite of randomly generated matrices, wherein nonzeros are placed uniformly throughout, varying the number of nonzeros per row and number of rows. This set of matrices are referred to as the RandomSuite matrices.
+The randomly generated matrices are tunable based on matrix size and number of nonzeros. In particular, we use a suite of randomly generated matrices, wherein nonzeros are placed uniformly throughout, varying the number of nonzeros per row and number of rows. This set of matrices is referred to as the RandomSuite matrices.
 
-To evaluate the impact of structure in this synthetic setting, we also generate a set of random matrices with a fixed number of nonzeros per row but varying distribution of those nonzeros, from tightly packed around the diagonal out to uniformly spread. This is referred to as the DiagSpectrumSuite.
+% To evaluate the impact of structure in this synthetic setting, we also generate a set of random matrices with a fixed number of nonzeros per row but varying distribution of those nonzeros, from tightly packed around the diagonal out to uniformly spread. This is referred to as the DiagSpectrumSuite.
 
 Lastly, we choose a selection of SuiteSparse matrices to capture SpMV performance on more real world use-cases
 across a variety of applications, structures, and sizes. Our selection is outlined in Table \ref{tab:suite_sparse_matrices}.
@@ -283,24 +283,58 @@ Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats
 \end{figure}
 
 \subsection{Model Evaluation}
-\textcolor{red}{BIG IDEA 1. is the performance model accurate}
+\textcolor{red}{BIG IDEA 1. is the performance model accurate?}
 
 Initial model evaluation is performed using randomly generated matrices.
 The goal is to evaluate the accuracy of the performance model under the assumption of uniformly distributed nonzeros, and associated relative load balance.
 Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices.
 these plots use the randomly generated matrices, no need to talk about load imbalance yet
 
-Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. For the smallest matrix, with 8192 rows and
+Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. For the matrix with the fewest nonzeros, the communication model clearly aligns with true performance, particularly at larger scales. For more dense matrices, the left hand side of the figure shows that at small PE grid sizes, compute dominates and the communication model does not predict performance well. As the compute per PE decreases, however, performance approaches the modeled result.
+
+\textcolor{green}{TODO: mention that the max pe compute time very closely models the rest of the performance, and add it to the plot.}
 
 
 \begin{figure}
     \centering
     \centering
-    \includegraphics[width=\linewidth]{figures/random-scale-npes.pdf}
-    \caption{PE Dim Scaling for 3 different matrices}
+    \includegraphics[width=\linewidth]{figures/comm-accuracy.pdf}
+    \caption{Model Accuracy for varying density.}
 
     \label{fig:scale-npes}
 \end{figure}
+
+\subsection{Mesh Size Selection}
+\label{sec:optmeshsize}
+\textcolor{red}{
+    BIG IDEA 2: how can the comm model be used to make decisions about runtime configuratino?
+}
+
+The communication model becomes useful in practice if it can help make decisions around the best configuration for a given matrix.
+Particularly, we are interested in how the communicatoin model can help select the ideal PE mesh size.
+
+We evaluate the space of random matrices from our RandomSuite across various PE mesh sizes to identify the optimal configuration. Figure \ref{fig:randsuite-wse-heatmap} visualizes the result, from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
+
+The communication model can be used to predict the ideal mesh size based on only the size of the matrix. These predictions are visualized in the bottom half of Figure \ref{fig:randsuite-wse-heatmap}. Note that the communication model does not depend on the density of the matrix.
+
+Overall, the communication model predicts the general trend as shown in the main result heatmap, but for large nonzero counts the accuracy diminishes. This is again a reflection of the shortcoming of the communication model - it doesn't model computation.
+
+\begin{figure}
+    \centering
+
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/matrix-space-wse.pdf}
+    \end{subfigure}
+
+    \hspace{-1cm}%
+    \begin{subfigure}{0.35\textwidth}
+        \includegraphics[width=\linewidth]{figures/matrix-space-wse-mincomm.pdf}
+    \end{subfigure}
+    \caption{Heatmap of RandSuite configurations space, showing the optimal square PE gridsize (top) against the communication model predictions (bottom). The top right entries of the evaluation space are infeasible to run on the WSE due to PE local memory constraints.}
+    \label{fig:randsuite-wse-heatmap}
+\end{figure}
+
 
 
 
@@ -333,31 +367,6 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
     \label{fig:suite-sparse-parameters}
 \end{figure}
 
-\subsection{Configuration Selection}
-\textcolor{red}{
-    BIG IDEA 2: how do we make decisions about layout and resources for optimal performance?
-}
-
-Mapping a given matrix to the WSE SpMV algorithm requires (1) selecting the matrix layout, and (2) selecting the PE grid size.
-To analyze this second aspect, we evaluate a set of matrices from our RandomSuite at different PE gridsizes. Figure \ref{fig:randsuite-wse-heatmap} visualizes the exploration space of RandomSuite, from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
-
-While this evaluation can be abstracted to more general matrices, we are interested in how well our communication model captures these trends.
-
-\begin{figure}
-    \centering
-
-    \begin{subfigure}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{figures/matrix-space-wse.pdf}
-    \end{subfigure}
-
-    \hspace{-1cm}%
-    \begin{subfigure}{0.35\textwidth}
-        \includegraphics[width=\linewidth]{figures/matrix-space-wse-mincomm.pdf}
-    \end{subfigure}
-    \caption{Heatmap of RandSuite configurations space, showing the optimal square PE gridsize (top) against the communication model predictions (bottom). The top right entries of the evaluation space are infeasible to run on the WSE due to PE local memory constraints.}
-    \label{fig:randsuite-wse-heatmap}
-\end{figure}
 
 \subsection{SuiteSparse Breakdown}
 Breakdown of performance by phase and by communication vs computation in Figure \ref{fig:suite-sparse-comm-model}
@@ -376,9 +385,19 @@ Note that the number of nnzs corresponds exactly to the compute time.
 In this section, we evaluate the WSE SpMV algorithm against a CuSparse implementation on a single Nvidia H200.
 This GPU comparison serves as a baseline and reference datapoint, not a strict comparison for the sake of demonstrating superiority of one algorithm or architecture over the other. Such a comparison would necessitate a more comprehensive analysis of power draw differences and a pass over various GPU implementations, including possibly custom kernels. We note that the fashion in which the WSE algorithm loads the full matrix into fast local memory first might be more comparable to a GPU implementation that uses entirely shared memory. A more thorough comparison accounting for these points is left for future work.
 
-We first evaluate the GPU across our RandomSuite space varying the number of nonzeros per row and the number of rows. Figure \ref{fig:gpu-vs-wse-varydensity} shows the throughput achieved for increasing matrix size on the H200 and WSE. \textcolor{green}{TODO: WSE RandomSuite results}
+We first evaluate the GPU across our RandomSuite space varying the number of nonzeros per row and the number of rows. Figure \ref{fig:gpu-vs-wse-varydensity} shows the throughput achieved for increasing matrix size on the H200 and WSE. The heatmap in Figure \ref{fig:randomsuite-speedup} shows the speedup achieved by the WSE over the GPU for each of the RandomSuite matrices. Note that the WSE results here use the optimal configuration found in section \ref{sec:optmeshsize}.
 
-To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
+The performance trends here suggest that if the SpMV implementation could be updated to address the memory constraint limits, the speedup may continue to scale.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/matrix-space-speedup.pdf}
+    \caption{RandomSuite matrices speedup of WSE over GPU.}
+    \label{fig:randomsuite-speedup}
+\end{figure}
+
+% TODO? maybe if there's need/space
+% To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
 
 Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. We note that speedup is inversly correlated with load imbalance ratio, suggesting that particularly for matrices where the WSE is relatively slow, deriving new mapping strategies to minimize load imbalance is likely to greatly improve speedup. The WSE performs the best in comparison to the GPU on the kron\_g500-logn17 matrix, a relatively dense and unstructured multigraph representation. It performs the worst on the atmosmodl matrix, due to large load imbalance likely caused by the matrix's tridiagonal pattern. Interestingly, both matrices have a similar number of nonzeros. They are visualized in Figure \ref{fig:spyplots}.
 
