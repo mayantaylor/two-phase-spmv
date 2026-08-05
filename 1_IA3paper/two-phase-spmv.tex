@@ -109,43 +109,32 @@ computation and communication processes"
 \section{1D Collectives}
 Luczynski et al. orinally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in \ref{tab:notation}, where $B$ and $P$ represent the same concepts as in the original paper. Note that here we understand $B$ slightly differently. Instead of referring to it as the vector size per PE, we understand $B$ as the number of consecutive vectors that are operated on. In this sense, it can be interpreted as the number of pipelined iterations of broadcast or reduction.
 
-In the original presentation of these collectives, Luczynski et al. also develop a performance model for them. This performance model is based on the parameters $P$ and $B$ and an additional variable $T_{ramp}$, the ramp latency. Specifically, $T_{ramp}$ captures the latency between message arrive on a PE at the router to that message being received by the compute engine.
+In the original presentation of these collectives, Luczynski et al. also develop a performance model for them. This performance model is based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrive on a PE at the router to that message being received by the compute engine.
 
-We build on Luczynski et al. by (1) implementing the collectives in Tungsten and Paint, and (2) updating the performance model.
+We build on Luczynski et al. by (1) implementing the collectives in Tungsten and Paint, and (2) updating the performance model. Additionally, we introduce a new parameter $S$, the single-hop latency between PEs, from router to router. While this paramter clearly plays in to the results in earlier work, it has not yet been explicitly named.
+
 
 \begin{table}[t]
     \caption{Notation}
     \centering
     \begin{tabular}{ll}
         \hline
-        Symbol     & Description                       \\
+        Symbol    & Description                       \\
         \hline
-        $P$        & Length of the PE column or row    \\
-        $B$        & Number of consecutive collectives \\
+        $P$       & Length of the PE column or row    \\
+        $B$       & Number of consecutive collectives \\
         \hline
-        $T_{ramp}$ & Ramp latency                      \\
-        $T_{ret}$  & Reticle crossing overhead         \\
+        $T_r$     & Ramp latency                      \\
+        $S$       & PE-to-PE latency                  \\
+        $S_{ret}$ & Reticle crossing overhead         \\
     \end{tabular}
     \label{tab:notation}
 \end{table}
 
-\begin{enumerate}
-    \item Luczynski et al presents the chain reduce and multicast broadcast that we use.
-    \item They also present performance model
-    \item We implement the same things in Tungsten + Paint and an updated performance model.
-    \item The updates: 2P factor for broadcast, reticle boundary overhead.
-\end{enumerate}
+\subsection{Parameter Study}
+Before building the full collectives, we evaluate a pair-wise pingpong benchmark to capture the communication latencies between PEs and understand the ramp latency.
 
-\subsection{Pairwise Pingpong}
-Before building the full collectives, we evaluate a pair-wise pingpong benchmark to capture the communication latencies between PEs.
-\begin{enumerate}
-    \item Pairwise pingpong benchmark highlights the immediate neighbor communication latency.
-    \item Also highlights the reticle boundary crossing.
-    \item Experiments show that ramp latency $T_r = 5$
-    \item Experiments: within reticle pingpong = 14 cycles. Across reticle = 14 + 18.
-    \item Takeaway: PE to PE latency = 2, across reticle 9 additional cycles
-\end{enumerate}
-
+Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. Our pingpong results show a full round trip requires 14 cycles, which includes 2 ramp traversals from CE to router, 2 from router to CE, and 2 PE-to-PE traversals. In the additional context of our collective performance (discussed below), we estimate $T_r$ around 2 to 3 cycles, $S = 2$. Moving forward, we use $T_r = 2.5$ and note that it is possible the two ramp directions perform slightly differently, averaging out at $2.5$.
 
 \subsection{Broadcast}
 \textcolor{green}{TODO: explain the performance model in terms of a throughput and latency term}
