@@ -5,9 +5,10 @@ import os
 
 results_df = pd.read_csv('ss-results/080326coo-512cyclic.csv')
 new_results_df = pd.read_csv('ss-results/080526coo-256_384.csv')
+coprime_df = pd.read_csv('ss-results/080526coo-coprimes512_256.csv')
 
 # Combine both dataframes
-combined_df = pd.concat([results_df, new_results_df], ignore_index=True)
+combined_df = pd.concat([results_df, new_results_df, coprime_df], ignore_index=True)
 
 # Group by matrix name and take the row with minimum max_time for each matrix
 combined_df['matrix_name'] = combined_df['name'].astype(str).str.split('.').str[0]
