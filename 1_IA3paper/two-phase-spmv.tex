@@ -109,7 +109,7 @@ reducing overall communication costs through specific matrix
 partitioning or reordering techniques, as well as overlapping
 computation and communication processes"
 \section{1D Collectives}
-Luczynski et al. orinally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in \ref{tab:notation}, where $B$ and $P$ represent the same concepts as in the original paper. Note that here we understand $B$ slightly differently. Instead of referring to it as the vector size per PE, we understand $B$ as the number of consecutive vectors that are operated on. In this sense, it can be interpreted as the number of pipelined iterations of broadcast or reduction.
+Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in \ref{tab:notation}, where $B$ and $P$ represent the same concepts as in the original paper. Note that here we understand $B$ slightly differently. Instead of referring to it as the vector size per PE, we understand $B$ as the number of consecutive vectors that are operated on. In this sense, it can be interpreted as the number of pipelined iterations of broadcast or reduction.
 
 In the original presentation of these collectives, Luczynski et al. also develop a performance model for them. This performance model is based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrive on a PE at the router to that message being received by the compute engine.
 
@@ -130,7 +130,8 @@ Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while a
         $T_r$     & Ramp latency                         \\
         $S$       & PE-to-PE latency                     \\
         $S_{ret}$ & Reticle crossing overhead            \\
-        $C$       & Number of reticle boundaries crossed
+        $C$       & Number of reticle boundaries crossed \\
+        \hline
     \end{tabular}
     \label{tab:notation}
 \end{table}
@@ -188,20 +189,14 @@ Figure \ref{fig:collectives} illustrate how our updated models compare to the tr
 \end{figure}
 
 \section{Two-Phase SpMV}
-Solving $Ax = y$.
-\begin{enumerate}
-    \item The 1D collectives can be combined for SpMV.
-    \item Distribute matrix nonzeros on the 2D mesh, Broadcast down rows, reduce across columns.
-\end{enumerate}
-\subsection{Sparse Partitionings}
+We implement an algorithm to compute the sparse matrix-vector product  $Ax = y$ on the WSE using the 1D collectives as a basis.
+At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A$ and the PE grid are both square, using $N$ to refer to the dimension of $A$ and $P$ to refer to the dimension of the PE grid.
 
-We use what \cite{gao2024systematicliteraturesurveysparse} calls a Fixed rows-based partitioning. They note "it is important to note that an equal number of matrix rows
-does not necessarily correspond to the same workload."
-\begin{enumerate}
-    \item To use the 1D collectives, the matrix must be distributed in a row and column locality (RCL) fashion.
-    \item My results explore a blocked, cyclic, and random partitioning of rows and columns.
-    \item Load imbalance is important.
-\end{enumerate}
+\textbf{Matrix Layout:}
+To use the 1D collectives, the matrix must be distributed in a row and column locality (RCL) fashion. \textcolor{green}{TODO: say more..}
+
+\textbf{Matrix Mappings:}
+We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, within the constraint of RCL. In this work, we explore three mappings: blocked, cyclic, and random. The blocked mapping does a basic 2D blocked decomposition of the rows and columns of $A$. This mapping is perhaps the easiest to visualize, but often produces large load imbalance across PEs, especially when the matrix has some sort of structure. The cyclic and random mappings attempt to address this problem by partitioning rows and columns either cyclically (round-robin fashion) or randomly.
 
 
 \subsection{Dataflow Algorithm}
@@ -213,10 +208,9 @@ broken down into two simple 1D collective phases:
 \end{enumerate}
 
 Ensuring that broadcasts and reductions proceed in a prescribed order means that indices of $x$ and row indices of the reductions do not need to be communicated - instead, they are implied by the order of arrival.
-
 In our implementation, the values of $x$ and the resulting values of $y$ are stored in 'moat' PEs: an extra row of PEs is set aside at the top of the
 mesh onto which the initial values of $x$ are loaded. Similarly, an extra column of PEs is allocated to the left of the grid wherein the result values $y$ are stored
-once computed.
+once computed. Alternatively, the implementation could be updated to stream the values of $x$ and $y$ on and off the mesh, eliminating the need for moat PEs and the corresponding buffers for $x$ and $y$. This streaming optimization is left for future work.
 
 Locally, each PE processes the SpMV in three distinct phases with serialization points between them.
 \begin{enumerate}
@@ -224,21 +218,19 @@ Locally, each PE processes the SpMV in three distinct phases with serialization 
     \item Complete all local compute for each output row
     \item Contribute all results to row reductions
 \end{enumerate}
-In theory, local synchronizations between these three components are not necessary. For example, early incoming broadcasts could trigger compute before all broadcasts are received.
+In theory, local synchronizations between these three components are not necessary. For example, early incoming broadcasts could trigger some subset of the compute before all broadcasts are received.
 While Tungsten does provide constructs that would support more overlap
 of communication and computation here, we evaluated a couple different approaches and found that the serial approach consistently performed best.
 
-Here it is important to note that while the kernel for each PE appears bulk-synchronous, the global algorithm is not. Broadcasts and reductions can proceed
-as soon as the next individual PE is ready. In practice, this might look like reductions near the top of the grid completing before those lower in the grid.
+Even though the kernel for each PE enforces this serialization, the global algorithm is not bulk-synchronous. Broadcasts and reductions can proceed
+in increments of single PE steps, allowing incremental progress through the grid and an overlap of communication and computation. In practice, this might look like reductions near the top of the grid completing before those lower in the grid. We expect that this wavefront behavior would allow some pipelining of multiple SpMVs but this evaluation is left for future work.
 
 \subsection{PE-Local Storage Format}
-We implement two standard matrix storage formats: CSR and COO. These dictate only the storage of each PE's individual domain,
-and therefore also the compute kernel per PE. Algorithm \ref{alg:csr} outlines the CSR algorithm, and Algorithm \ref{alg:coo} outlines the COO algorithm.
-The COO format avoids the nested for loop and is therefore friendlier to the Tungsten compiler.
-On the other hand, COO replaces the Aptr data structure, which has length corresponding to the number of local rows, with
-a rowids data structure with an entry for each non-zero.
-
-In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much more efficient than CSR.
+We implement two standard matrix storage formats: CSR and COO. These dictate only the storage of each PE's individual domain and are completely independent of the mapping strategies.
+The COO algorithm \ref{alg:coo} avoids the nested for loop of the CSR algorithm \ref{alg:csr} and is therefore apparently friendlier to the Tungsten compiler.
+On the other hand, COO replaces the $Aptr$ data structure, which has length corresponding to the number of local rows, with
+a rowids data structure with an entry for each non-zero, potentially contributing to memory pressure depending on the sparsity structure of the matrix.
+In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much more efficient than CSR and we therefore use COO throughout the rest of this work.
 
 \begin{algorithm}
     \caption{SpMV Kernel in CSR Format}
@@ -283,7 +275,7 @@ In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much 
 \end{enumerate}
 
 \section{Experimental Setup}
-We evaluate our SpMV algorithm and communication model on a WSE-3 in 32-bit floating point precision. The GPU baseline comparisons
+We evaluate our SpMV algorithm and communication model on a WSE-3 in 32-bit floating point precision assuming a 1GHz clock rate. The GPU baseline comparisons
 are made with a cuSparse implementation evaluated on a single H200.
 \subsection{Matrix Selection}
 We evaluate on two classes of matrices: custom randomly generated matrices and a selection of matrices from SuiteSparse.
