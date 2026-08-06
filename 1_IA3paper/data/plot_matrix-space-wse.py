@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
+from style import figure, style_axes, save
+
 # Read results
 df = pd.read_csv("matrix-space-wse.csv")
 
@@ -58,7 +60,7 @@ norm = colors.BoundaryNorm(
 value_to_index = {v: i for i, v in enumerate(pes)}
 indexed = heatmap.replace(value_to_index)
 
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = figure("rect")
 
 im = ax.imshow(
     indexed.values,
@@ -67,31 +69,20 @@ im = ax.imshow(
     cmap=cmap,
     norm=norm,
 )
-
-# Axis labels
-ax.set_xticks(np.arange(len(heatmap.columns)))
-ax.set_xticklabels(heatmap.columns)
-
 ax.set_yticks(np.arange(len(heatmap.index)))
 ax.set_yticklabels(heatmap.index)
 
-ax.set_xlabel("Matrix Rows")
+ax.set_xticks([])
+
 ax.set_ylabel("NNZ per Row")
-ax.set_title("Optimal PE Count (minimum max_time)")
 
 for i, nnz in enumerate(heatmap.index):
     for j, rows in enumerate(heatmap.columns):
         val = heatmap.loc[nnz, rows]
 
         if pd.notna(val):
-            missing = skipped[(rows, nnz)]
-
-            if len(missing) == 0:
-                label = f"{int(val)}"
-            else:
-                missing_str = ",".join(map(str, missing))
-                label = f"{int(val)}\n(-{missing_str})"
-
+            label = f"{int(val)}"
+          
             ax.text(
                 j,
                 i,
@@ -106,5 +97,5 @@ cbar = fig.colorbar(im, ticks=np.arange(len(pes)))
 cbar.ax.set_yticklabels([str(int(x)) for x in pes])
 cbar.set_label("Optimal # PEs")
 
-plt.tight_layout()
-plt.savefig("../figures/matrix-space-wse.pdf", format='pdf')
+style_axes(ax)
+save(fig,"../figures/matrix-space-wse.pdf")

@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+from style import figure, style_axes, save
+
 # ---------------------------------------------------------
 # Bytes moved per nonzero -- EDIT THIS to match your data format.
 # Default assumes: 8-byte double value + 4-byte int32 column index.
@@ -42,7 +44,7 @@ nnz_per_rows = sorted(best["matrix_nnz"].unique())
 # ---------------------------------------------------------
 # Row Scaling: x = matrix_nrows, one line per nnz/row
 # ---------------------------------------------------------
-plt.figure(figsize=(6, 4))
+fig, ax = figure("rect")
 
 for nnzpr in nnz_per_rows:
     subset = (
@@ -55,16 +57,14 @@ for nnzpr in nnz_per_rows:
         subset["throughput_GBs"],
         marker="o",
         linewidth=2,
-        label=f"{nnzpr} nnz/row",
+        #label=f"{nnzpr} nnz/row",
     )
 
 plt.xscale("log", base=2)
-plt.xticks(row_sizes, [f"{int(r):,}" for r in row_sizes], rotation=45)
+plt.xticks(row_sizes)
 
-plt.xlabel("Matrix Rows")
+plt.xlabel("N")
 plt.ylabel("Bandwidth (GB/s)")
-plt.title("Row Scaling")
 plt.grid(True, alpha=0.3)
-plt.legend(title="Fixed NNZ/Row")
-plt.tight_layout()
-plt.savefig("../figures/matrix-space-wse-tp.pdf", format='pdf')
+style_axes(ax)
+save(fig,"../figures/matrix-space-wse-tp.pdf")

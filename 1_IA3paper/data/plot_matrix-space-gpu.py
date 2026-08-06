@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+from style import figure, style_axes, save
+
 # Load CSV
 df = pd.read_csv("matrix-space-gpu.csv")
 
@@ -18,7 +20,7 @@ nnz_per_rows = sorted(df["nnz_per_row"].unique())
 # ---------------------------------------------------------
 # Row Scaling
 # ---------------------------------------------------------
-plt.figure(figsize=(6,4))
+fig, ax = figure("rect")
 
 for nnzpr in nnz_per_rows:
     subset = (
@@ -35,43 +37,13 @@ for nnzpr in nnz_per_rows:
     )
 
 plt.xscale("log", base=2)
-plt.xticks(row_sizes, [f"{int(r):,}" for r in row_sizes], rotation=45)
+plt.xticks(row_sizes)
 
-plt.xlabel("Matrix Rows")
+plt.xlabel("N")
 plt.ylabel("Bandwidth (GB/s)")
-plt.title("Row Scaling")
+plt.ylim(top=4000)
 plt.grid(True, alpha=0.3)
-plt.legend(title="Fixed NNZ/Row")
-plt.tight_layout()
-plt.savefig("../figures/matrix-space-gpu.pdf", format='pdf')
+plt.legend(loc="upper right")
+style_axes(ax)
+save(fig,"../figures/matrix-space-gpu.pdf")
 
-
-# ---------------------------------------------------------
-# NNZ Scaling
-# ---------------------------------------------------------
-plt.figure(figsize=(6,4))
-
-for rows in row_sizes:
-    subset = (
-        df[df["rows"] == rows]
-        .sort_values("nnz_per_row")
-    )
-
-    plt.plot(
-        subset["nnz_per_row"],
-        subset["gpu_coo_alg1_bw_GBs"],
-        marker="o",
-        linewidth=2,
-        label=f"{int(rows):,} rows",
-    )
-
-plt.xscale("log", base=2)
-plt.xticks(nnz_per_rows, [str(x) for x in nnz_per_rows])
-
-plt.xlabel("NNZ per Row")
-plt.ylabel("Bandwidth (GB/s)")
-plt.title("NNZ Scaling")
-plt.grid(True, alpha=0.3)
-plt.legend(title="Fixed Rows")
-plt.tight_layout()
-plt.savefig("../figures/matrix-space-gpu-scalennz.pdf")

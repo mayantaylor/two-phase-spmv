@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 
+from style import figure, style_axes, save
+
+
 # Read results
 df = pd.read_csv("matrix-space-wse.csv")
 
@@ -57,7 +60,7 @@ norm = colors.BoundaryNorm(
 value_to_index = {v: i for i, v in enumerate(pes)}
 indexed = heatmap.replace(value_to_index)
 
-fig, ax = plt.subplots(figsize=(10, 2.3))
+fig, ax = figure("wide-single")
 
 im = ax.imshow(
     indexed.values,
@@ -70,7 +73,7 @@ im = ax.imshow(
 ax.set_yticks([])
 # Axis labels
 ax.set_xticks(np.arange(len(heatmap.columns)))
-ax.set_xticklabels(heatmap.columns)
+ax.set_xticklabels([str(int(x)) for x in heatmap.columns])
 
 ax.set_xlabel("Matrix Rows")
 
@@ -79,13 +82,7 @@ for i, nnz in enumerate(heatmap.index):
         val = heatmap.loc[nnz, rows]
 
         if pd.notna(val):
-            missing = skipped[(rows, nnz)]
-
-            if len(missing) == 0:
-                label = f"{int(val)}"
-            else:
-                missing_str = ",".join(map(str, missing))
-                label = f"{int(val)}\n(-{missing_str})"
+            label = f"{int(val)}"
 
             ax.text(
                 j,
@@ -93,10 +90,9 @@ for i, nnz in enumerate(heatmap.index):
                 label,
                 ha="center",
                 va="center",
-                fontsize=7,
                 color="white",
             )
 
+style_axes(ax)
+save(fig,'../figures/matrix-space-wse-mincomm.pdf')
 
-plt.tight_layout()
-plt.savefig("../figures/matrix-space-wse-mincomm.pdf", format='pdf')

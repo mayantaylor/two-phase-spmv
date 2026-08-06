@@ -21,8 +21,9 @@ FONT = {
 # ----------------------------------------------------------------------
 
 FIGURES = {
-    "square": (3.4, 3.4),          # IEEE single-column square
-    "rect": (3.4, 2.5),            # IEEE single-column landscape
+    "square": (3.2, 3.2),          # IEEE single-column square
+    "rect": (3.2, 2.3),            # IEEE single-column landscape
+    "wide-single": (2.3, 1),
     "wide": (7.0, 3.0),            # Double-column
     "tall": (3.4, 4.5),
 }
