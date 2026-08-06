@@ -187,6 +187,8 @@ Figure \ref{fig:collectives} illustrate how our updated models compare to the tr
 We implement an algorithm to compute the sparse matrix-vector product  $Ax = y$ on the WSE using the 1D collectives as a basis.
 At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A$ is square and use $N$ to refer to the dimension of $A$. The PE grid dimensions are denoted by $(P_1, P_2)$, and the PE grid is typically also square.
 
+\subsection{Data Distribution}
+
 \textbf{Matrix Layout:}
 To use the 1D collectives for SpMV, the matrix $A$ must be distributed on the PE grid in such a fashion that two entries $a_{i_1,j_1}$ and $a_{i_2,j_2}$ are in the same PE column if $j_1 = j_2$ and the same PE row if $i_1 = i_2$. In other words, a single row or column of $A$ must be mapped to a single row or column of the PE grid, respectively. We'll refer to this constraint as row and column locality (RCL).
 
@@ -282,31 +284,29 @@ We evaluate our SpMV algorithm and communication model on a WSE-3 in 32-bit floa
 are made with a cuSparse implementation evaluated on a single H200.
 \subsection{Matrix Selection}
 We evaluate on two classes of matrices: custom randomly generated matrices and a selection of matrices from SuiteSparse.
-
-The randomly generated matrices are tunable based on matrix size and number of nonzeros. In particular, we use a suite of randomly generated matrices, wherein nonzeros are placed uniformly throughout, varying the number of nonzeros per row and number of rows. This set of matrices is referred to as the RandomSuite matrices.
+The randomly generated matrices are constructed based on matrix size and number of nonzeros, with nonzeros distributed uniformly throughout the matrix. In particular, we use a suite of randomly generated matrices, varying the number of nonzeros per row and the number of rows. We refer to this set of matrices as the RandomSuite matrices.
 
 % To evaluate the impact of structure in this synthetic setting, we also generate a set of random matrices with a fixed number of nonzeros per row but varying distribution of those nonzeros, from tightly packed around the diagonal out to uniformly spread. This is referred to as the DiagSpectrumSuite.
 
-Lastly, we choose a selection of SuiteSparse matrices to capture SpMV performance on more real world use-cases
-across a variety of applications, structures, and sizes. Our selection is outlined in Table \ref{tab:suite_sparse_matrices}.
+Our selection of SuiteSparse matrices is outlined in Table \ref{tab:suite_sparse_matrices}. We use these matrices to evaluate the behavior of our SpMV algorithm on more real world use-cases
+across a variety of applications, structures, and sizes. These test cases specifically pressure the load balancing capabilities of our mapping strategies.
 \input{figures/suite_sparse_matrices.tex}
-
 \subsection{WSE Pre-processing}
 Once a matrix is chosen, a pre-processing step generates the corresponding input files for the WSE.
 This step requires the matrix itself, the size of the PE grid, the mapping strategy (blocked, cyclic, random), and the format (COO, CSR).
-The result of pre-processing is a set of binary files describing the data to be loaded on to the device.
-This pre-processing step is not measured in algorithm runtime, and would in theory be reusable across multiple iterations of SpMV on the same matrix.
+The result of pre-processing is a set of binaries describing the data to be loaded on to the device.
+This pre-processing step is not measured in reported runtimes.
 
 \subsection{CuPy Comparison}
 
-We evaluate using a CuSparse SpMV implementation on a single H200, also in 32-bit float precision.
-Specifically, we use the COO configuration $CUSPARSE_SPMV_COO_ALG1$ which has demonstrated the best performance on SuiteSparse matrices in recent literature \cite{gao2024systematicliteraturesurveysparse}.
-On our selection, this configuration achieves up to a 1.3x speedup over the default CuPy implementation selection. Each GPU datapoint includes 20 warmup iterations and an average timing over 50 subsequent trials.
+In our GPU performance comparisons, we use a 32-bit CuSparse SpMV implementation on a single H200.
+Specifically, we use the configuration $CUSPARSE\_SPMV\_COO\_ALG1$ which has demonstrated the best performance on SuiteSparse matrices in recent literature \cite{gao2024systematicliteraturesurveysparse}.
+On our selection, this configuration achieves up to a 1.3x speedup over the default CuPy implementation. Each GPU datapoint includes 20 warmup iterations and an average timing over 50 subsequent trials.
 
 \section{Evaluation}
 
 \subsection{COO vs CSR}
-Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats under two scaling configurations. CSR is consistently slower than COO but particularly suffers when scaling the number of rows. Still, in later evaluation of SuiteSparse matrices, we find that CSR is occasionally still better than COO.
+Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats under two scaling configurations. CSR is consistently slower than COO but particularly suffers when scaling the number of rows. Still, in later evaluation of SuiteSparse matrices, we find that CSR is occasionally better than COO.
 
 \label{sec:coovscsr}
 \begin{figure}[]
@@ -331,14 +331,10 @@ Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats
 \end{figure}
 
 \subsection{Model Evaluation}
-\textcolor{red}{BIG IDEA 1. is the performance model accurate?}
+We evaluate our SpMV communication model using randomly generated matrices under the assumption of uniformly distributed nonzeros, and associated relative load balance.
+Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices on the accuracy of the communcation model.
 
-Initial model evaluation is performed using randomly generated matrices.
-The goal is to evaluate the accuracy of the performance model under the assumption of uniformly distributed nonzeros, and associated relative load balance.
-Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices.
-these plots use the randomly generated matrices, no need to talk about load imbalance yet
-
-Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. For the matrix with the fewest nonzeros, the communication model clearly aligns with true performance, particularly at larger scales. For more dense matrices, the left hand side of the figure shows that at small PE grid sizes, compute dominates and the communication model does not predict performance well. As the compute per PE decreases, however, performance approaches the modeled result.
+Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. For the matrix with the fewest nonzeros, the communication model captures the SpMV performance almost perfectly. For more dense matrices, the left hand side of the figure shows that, as expected, when compute dominates the communication model is not a good predictor. As the compute per PE decreases towards the right of the figure, performance approaches the modeled result.
 
 \textcolor{green}{TODO: mention that the max pe compute time very closely models the rest of the performance, and add it to the plot.}
 
@@ -353,20 +349,14 @@ Figure \ref{fig:scale-npes} compares the communication model to actual runtime f
     \label{fig:scale-npes}
 \end{figure}
 
-\subsection{Mesh Size Selection}
+\subsection{Grid-Size Selection}
 \label{sec:optmeshsize}
-\textcolor{red}{
-    BIG IDEA 2: how can the comm model be used to make decisions about runtime configuratino?
-}
+The communication model becomes useful in practice if it can guide discovery of the best configuration for a given matrix.
+Particularly, we are interested in how the communicatoin model can help select the ideal PE grid size.
 
-The communication model becomes useful in practice if it can help make decisions around the best configuration for a given matrix.
-Particularly, we are interested in how the communicatoin model can help select the ideal PE mesh size.
+We evaluate the RandomSuite matrices across various PE grid sizes to identify the optimal configuration for each. Figure \ref{fig:randsuite-wse-heatmap} visualizes the results from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
 
-We evaluate the space of random matrices from our RandomSuite across various PE mesh sizes to identify the optimal configuration. Figure \ref{fig:randsuite-wse-heatmap} visualizes the result, from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
-
-The communication model can be used to predict the ideal mesh size based on only the size of the matrix. These predictions are visualized in the bottom half of Figure \ref{fig:randsuite-wse-heatmap}. Note that the communication model does not depend on the density of the matrix.
-
-Overall, the communication model predicts the general trend as shown in the main result heatmap, but for large nonzero counts the accuracy diminishes. This is again a reflection of the shortcoming of the communication model - it doesn't model computation.
+The bottom of Figure \ref{fig:randsuite-wse-heatmap} shows the best grid size prediction based solely on the communication model. Since the communication model does not account for the density of the matrix, it produces only a single row heatmap. Overall, the communication model predicts the general trend as shown in the main result heatmap, but for large nonzero counts the accuracy diminishes. In practice, this suggests that the communication model alone may not be a good prediction tool, unless suplemented by a corresponding computation model.
 
 \begin{figure}
     \centering
@@ -387,16 +377,15 @@ Overall, the communication model predicts the general trend as shown in the main
 
 
 
-\subsection{Matrix Layout}
+\subsection{Load Imbalance}
 \label{sec:layout}
 
-Our selection of SuiteSparse matrices are an important addition to evaluation because they introduce structure which produces load imbalance, particularly under the basic 2D blocked decomposition. These matrices highlight
-the utility of other mapping schemes.
-Figure \ref{fig:suite-sparse-parameters} illustrates a first pass over the SuiteSparse selection under each of our three
-mapping schemes, demonstrating how each scheme and matrix combination produces a different max nnz count.
+To evaluate the impact of load imbalance, we evaluate our algorithm on our selection of SuiteSparse matrices. These matrices highlight
+the importance of other mapping schemes over the basic block decomposition.
+Figure \ref{fig:suite-sparse-parameters} illustrates an analysis pass, in which we compute the maximum nonzero count per PE for each matrix and mapping scheme. This gives us a sense of how each mapping performs simply based on the predicted load imbalance. The blocked
+mapping typically introduces the most imbalance, and cyclic typically the least.
 
-This gives us a sense of how each mapping performs, based on the estimated maximum time spent in compute. The blocked
-mapping typically introduces the most load imbalance, and cyclic typically the least.
+This initial evaluation is also valuable because it allows us to
 Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to the hardware, as indicated by the filled circles in the figure. The highlighted points indicate the best configurations for each matrix at 512 PEs.
 
 \begin{figure}
