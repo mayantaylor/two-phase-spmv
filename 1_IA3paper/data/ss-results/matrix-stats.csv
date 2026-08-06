@@ -1,4 +1,4 @@
-name,id,nrows,ncols,nnz,category,
+matrix_name,id,nrows,ncols,nnz,category,
 MAWI/mawi_201512020030,2802,68863315,68863315,143414960,Undirected Weighted Graph,
 LAW/indochina-2004,2451,7414866,7414866,194109311,Directed Graph,
 VLSI/stokes,2845,11449533,11449533,349321980,Semiconductor Process Problem,

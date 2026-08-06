@@ -396,25 +396,16 @@ Figure \ref{fig:suite-sparse-parameters} illustrates a first pass over the Suite
 mapping schemes, demonstrating how each scheme and matrix combination produces a different max nnz count.
 
 This gives us a sense of how each mapping performs, based on the estimated maximum time spent in compute. The blocked
-mapping typically introduces the most load imbalance, and cyclic and random often perform similarly.
-
-The horizontal and vertical lines in Figure \ref{fig:suite-sparse-parameters} highlight the memory constraints of the WSE and the limitations
-on the matrices and configurations our algorithm supports. The local 48KB limit per PE restricts both the number of nonzeros a PE can store and
-the number of rows mapped to a single PE row (equivalently for columns). The horizontal line represents the nnz cap, and the vertical line represents the row count cap.
-Note that these two caps are in fact dependent on eachtoher because the core PE mesh must store an array entry for each nonzero and an array entry for each local row. The lines don't reflect this dependency, but simply designate the apparent cutoffs not theoretical limits.
-
-Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to the hardware, and only under certain mapping schemes.
+mapping typically introduces the most load imbalance, and cyclic typically the least.
+Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to the hardware, as indicated by the filled circles in the figure. The highlighted points indicate the best configurations for each matrix, and the configuration we use for evaluation moving forward.
 
 
-
-
-\textcolor{green}{TODO: regenerate parameters for all the configurations, using coo and coprime cyclic}
-% \begin{figure}
-%     \centering
-%     \includegraphics[width=\linewidth]{figures/suite_sparse_manifest.pdf}
-%     \caption{Parameter space evalutation of suite-sparse selection.}
-%     \label{fig:suite-sparse-parameters}
-% \end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/suite_sparse_manifest.pdf}
+    \caption{Parameter space evalutation of suite-sparse selection.}
+    \label{fig:suite-sparse-parameters}
+\end{figure}
 
 
 \subsection{SuiteSparse Breakdown}
@@ -470,8 +461,7 @@ Figure \ref{fig:gpu-vs-wse-varydensity} plots the same results from the RandomSu
 % TODO? maybe if there's need/space
 % To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
 
-Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. We note that speedup is inversly correlated with load imbalance ratio, suggesting that particularly for matrices where the WSE is relatively slow, deriving new mapping strategies to minimize load imbalance is likely to greatly improve speedup. The WSE performs the best in comparison to the GPU on the kron\_g500-logn17 matrix, a relatively dense and unstructured multigraph representation. It performs the worst on the atmosmodl matrix, due to large load imbalance likely caused by the matrix's tridiagonal pattern. Interestingly, both matrices have a similar number of nonzeros. They are visualized in Figure \ref{fig:spyplots}.
-
+Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. We note that speedup is inversly correlated with load imbalance ratio, suggesting that particularly for matrices where the WSE is relatively slow, deriving new mapping strategies to minimize load imbalance is likely to greatly improve speedup. \textcolor{green}{TODO: say more...}
 
 \begin{figure}[htbp]
     \centering

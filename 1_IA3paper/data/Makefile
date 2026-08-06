@@ -18,8 +18,8 @@ $(FIGDIR)/%.pdf: %.csv plot_%.py | $(FIGDIR)
 $(FIGDIR)/%.pdf: plot_%.py | $(FIGDIR)
 	python3 plot_$*.py
 
-$(FIGDIR)/suite_sparse_manifest.pdf: ss-results/073026csr-manifest.csv ss-results/080326coo-512cyclic.csv plot_suite-sparse-manifest.py
-	python3 plot_suite-sparse-manifest.py
+$(FIGDIR)/suite_sparse_manifest.pdf: 080626manifest_full-coprimes.csv
+	python3 plot_suite-sparse-manifest.py 080626manifest_full-coprimes.csv
 
 $(FIGDIR)/suite_sparse_gpu_comparison.pdf: ss-results/073026csr-manifest.csv ss-results/080326coo-512cyclic.csv plot_suite_sparse_comparison.py
 	python3 plot_suite_sparse_comparison.py
