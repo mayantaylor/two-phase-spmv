@@ -5,6 +5,7 @@
 
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
@@ -152,22 +153,16 @@ For the reduction, we add a reticle boundary crossing term to the model develope
 
 
 \begin{tcolorbox}[equationbox,title={Collective Model Updates}]
-    \begin{equation}
-        M_{b} = B + P +  2T_r
-        \label{eq:oldbcast}
-    \end{equation}
-    \begin{equation}
-        M_{b}^* = B + S * P + 2 T_r + 9 C
-        \label{eq:newbcast}
-    \end{equation}
-    \begin{equation}
-        M_{r} = B + (2T_r + 2) P
-        \label{eq:oldred}
-    \end{equation}
-    \begin{equation}
-        M_{r}^* = B + (2T_r + S) P + 9C
+    \begin{align}
+        M_{b}(B, P)      & = B + P +  2T_r
+        \label{eq:oldbcast}                          \\
+        M_{b}^*(B, P, C) & = B + S * P + 2 T_r + 9 C
+        \label{eq:newbcast}                          \\
+        M_{r}(B, P)      & = B + (2T_r + 2) P
+        \label{eq:oldred}                            \\
+        M_{r}^*(B, P, C) & = B + (2T_r + S) P + 9C
         \label{eq:newred}
-    \end{equation}
+    \end{align}
 \end{tcolorbox}
 
 Figure \ref{fig:collectives} illustrate how our updated models compare to the true collective performance, for both scaling of $B$ and $P$. For this evaluation, both collectives are implemented in Tungsten and Paint and evaluated on the WSE3. Cycle counts are converted to runtime assuming a 1GHz clock rate. Particularly, we demonstrate that our update to the latency term for the broadcast model aligns better with true performance.
@@ -190,16 +185,17 @@ Figure \ref{fig:collectives} illustrate how our updated models compare to the tr
 
 \section{Two-Phase SpMV}
 We implement an algorithm to compute the sparse matrix-vector product  $Ax = y$ on the WSE using the 1D collectives as a basis.
-At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A$ and the PE grid are both square, using $N$ to refer to the dimension of $A$ and $P$ to refer to the dimension of the PE grid.
+At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A$ is square and use $N$ to refer to the dimension of $A$. The PE grid dimensions are denoted by $(P_1, P_2)$, and the PE grid is typically also square.
 
 \textbf{Matrix Layout:}
-To use the 1D collectives, the matrix must be distributed in a row and column locality (RCL) fashion. \textcolor{green}{TODO: say more..}
+To use the 1D collectives for SpMV, the matrix $A$ must be distributed on the PE grid in such a fashion that two entries $a_{i_1,j_1}$ and $a_{i_2,j_2}$ are in the same PE column if $j_1 = j_2$ and the same PE row if $i_1 = i_2$. In other words, a single row or column of $A$ must be mapped to a single row or column of the PE grid, respectively. We'll refer to this constraint as row and column locality (RCL).
 
 \textbf{Matrix Mappings:}
-We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, within the constraint of RCL. In this work, we explore three mappings: blocked, cyclic, and random. The blocked mapping does a basic 2D blocked decomposition of the rows and columns of $A$. This mapping is perhaps the easiest to visualize, but often produces large load imbalance across PEs, especially when the matrix has some sort of structure. The cyclic and random mappings attempt to address this problem by partitioning rows and columns either cyclically (round-robin fashion) or randomly.
+We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, where we only consider mappings that satisfy RCL. In this work, we explore three mappings: blocked, cyclic, and random, but there are many other approaches to distributing a sparse matrix across a 2D mesh, including hypergraph partitioning and recursive block partitioning \cite{hypergraphforspmv,hypergraphcatalyurek,hypergraph,recursiveblock}.
 
-\textcolor{green}{TODO: cyclic uses coprime distribution! mention this and say why}
+Our blocked mapping does a basic 2D blocked decomposition of the rows and columns of $A$. This mapping is perhaps the easiest to visualize, but often produces large load imbalance across PEs, especially when the matrix has a banded or diagonal structure.
 
+The cyclic and random mappings attempt to address this potential load imbalance by partitioning rows and columns either randomly or cyclically via a mod function. The random mapping partitions rows and columns evenly across matrices, but under a random permutation. The cyclic mapping assigns every non-zero $a_{i,j}$ to PE $P_{(i \mod P_1),(j \mod P_2)}$. This mapping works best when PE grid is not in fact square, and the dimensions $P_1$ and $P_2$ are coprime, ensuring any cyclicity in the matrix structure is not mapped directly to the grid.
 
 \subsection{Dataflow Algorithm}
 Assuming that the matrix $A$ is distributed on the 2D mesh under a mapping that preserves row and column locality, the SpMV can be conceptually
@@ -261,21 +257,25 @@ In evaluation in Section \ref{sec:coovscsr}, we find that COO is typically much 
     \end{algorithmic}
 \end{algorithm}
 
-\section{Modeling SpMV}
-We present a communication model for SpMV based on the 1D collective models.
-\textcolor{red}{BIG IDEA 0. what is the performance model and what are its shortcomings}
-\subsection{Communication}
+\section{Communication Model}
+One benefit of designing the SpMV algorithm around 1D broadcast and reduce is that the performance model for the 1D collectives is easily extended to a communication model for SpMV. The communication patterns of SpMV map to the 1D collective models in two parts:
 \begin{enumerate}
-    \item The 1D collectives model the communication of SpMV
-    \item Whole SpMV communication can be approximated with just 1 reduction (correct P and B) and 1 broadcast. Think of this as matching the broadcast from top right down to bottom right, and then the reduction along the whole bottom row. This is the largest comm distance and the limiting factor.
-    \item Vertical bcast requires small reticle adjustment because tehre are fewer reticle
+    \item $P_2$ parallel broadcast streams, one in each PE column. Each stream has pipeline depth $B_b = \frac{N}{P_2}$ and length $P_b = P_1$.
+    \item $P_1$ parallel reduce streams, one in each PE row. Each stream has pipeline depth $B_r = \frac{N}{P_1}$ and length $P_r = P_2$.
 \end{enumerate}
 
-\subsection{Compute}
-\begin{enumerate}
-    \item record local compute time on every PE. Take the max.
-    \item In practice, all compute does not happen perfectly in parallel. This is an approximate understanding of compute.
-\end{enumerate}
+Our model makes the simplifying assumption that all broadcasts across PE columns occur perfectly in parallel, and similarly for all reduces across PE rows. We also approximate that there is a serialization point between the broadcasts and the reduces. The SpMV communication model is then simply a sum of the broadcasts and reduces, as described in Equation \ref{eq:spmvmodel}. Note that the numerators in the $C$ terms come from the observed size of the reticles in the horizontal and vertical directions respectively.
+\begin{tcolorbox}[equationbox,title={SpMV Communication Model}]
+    \begin{equation}
+        \begin{split}
+            M_{spmv} & = M_{r}^*(\frac{N}{P_1}, P_2, \lfloor{\frac{P_2}{64}}\rfloor)   \\
+                     & +  M_{b}^*(\frac{N}{P_2}, P_1, \lfloor{\frac{P_1}{168}}\rfloor) \\
+        \end{split}
+        \label{eq:spmvmodel}
+    \end{equation}
+\end{tcolorbox}
+
+In most contexts, this model will underpredict the runtime for SpMV, because it does not account for computation. This means that we expect the model to be better when the limiting compute factor (namely the max number of nnzs per PE) is smaller. In evaluation, we explicitly time the compute time on each PE and use the slowest PE to understand the overall compute time.
 
 \section{Experimental Setup}
 We evaluate our SpMV algorithm and communication model on a WSE-3 in 32-bit floating point precision assuming a 1GHz clock rate. The GPU baseline comparisons
@@ -485,6 +485,9 @@ Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Fig
 
 
 \section{Conclusion}
+
+\section{Acknowledgements}
+Thank you to Jon Berry and Kas Gabert at Sandia National Labs for their support learning the Tungsten model and discussions around mappings for SpMV. Additionally, thank you to Ilya
 
 \bibliographystyle{plain}
 \bibliography{references}

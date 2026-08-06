@@ -92,7 +92,6 @@ ax1.set_ylabel("Runtime (ms)", fontsize=fs)
 ax1.tick_params(axis='y', labelsize=16)
 
 # Shared x-axis
-ax1.set_xlabel("Matrix", fontsize=fs)
 ax1.set_xticks(x)
 ax1.set_xticklabels(combined_df['matrix_name'], rotation=45, ha='right', fontsize=fs)
 

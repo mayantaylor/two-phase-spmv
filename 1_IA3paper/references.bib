@@ -43,3 +43,59 @@
   primaryclass  = {cs.DC},
   url           = {https://arxiv.org/abs/2311.01739}
 }
+
+@article{hypergraphforspmv,
+  author   = {Catalyurek, U.V. and Aykanat, C.},
+  journal  = {IEEE Transactions on Parallel and Distributed Systems},
+  title    = {Hypergraph-partitioning-based decomposition for parallel sparse-matrix vector multiplication},
+  year     = {1999},
+  volume   = {10},
+  number   = {7},
+  pages    = {673-693},
+  keywords = {Vectors;Matrix decomposition;Sparse matrices;Concurrent computing;Computational modeling;Testing;Communication standards;Parallel processing;Linear systems;Equations},
+  doi      = {10.1109/71.780863}
+}
+
+@inproceedings{hypergraphcatalyurek,
+  author    = {Catalyurek, U.V.},
+  booktitle = {Proceedings 15th International Parallel and Distributed Processing Symposium. IPDPS 2001},
+  title     = {A fine-grain hypergraph model for 2D decomposition of sparse matrices},
+  year      = {2001},
+  volume    = {},
+  number    = {},
+  pages     = {1199-1204},
+  keywords  = {Sparse matrices;Matrix decomposition;Vectors;Concurrent computing;Iterative algorithms;Pathology;Biomedical informatics;Biomedical engineering;Kernel;Partitioning algorithms},
+  doi       = {10.1109/IPDPS.2001.925093}
+}
+
+@article{hypergraph,
+  author   = {{\c C}ataly{\"u}rek, {\"U}mi˙t V. and Aykanat, Cevdet and U{\c c}ar, Bora},
+  title    = {On Two-Dimensional Sparse Matrix Partitioning: Models, Methods, and a Recipe},
+  journal  = {SIAM Journal on Scientific Computing},
+  volume   = {32},
+  number   = {2},
+  pages    = {656-683},
+  year     = {2010},
+  doi      = {10.1137/080737770},
+  url      = {https://doi.org/10.1137/080737770},
+  eprint   = {https://doi.org/10.1137/080737770},
+  abstract = { We consider two-dimensional partitioning of general sparse matrices for parallel sparse matrix-vector multiply operation. We present three hypergraph-partitioning-based methods, each having unique advantages. The first one treats the nonzeros of the matrix individually and hence produces fine-grain partitions. The other two produce coarser partitions, where one of them imposes a limit on the number of messages sent and received by a single processor, and the other trades that limit for a lower communication volume. We also present a thorough experimental evaluation of the proposed two-dimensional partitioning methods together with the hypergraph-based one-dimensional partitioning methods, using an extensive set of public domain matrices. Furthermore, for the users of these partitioning methods, we present a partitioning recipe that chooses one of the partitioning methods according to some matrix characteristics. }
+}
+
+
+
+@article{recursiveblock,
+  author   = {Vastenhouw, Brendan and Bisseling, Rob H.},
+  title    = {A Two-Dimensional Data Distribution Method for Parallel Sparse Matrix-Vector Multiplication},
+  journal  = {SIAM Review},
+  volume   = {47},
+  number   = {1},
+  pages    = {67-95},
+  year     = {2005},
+  doi      = {10.1137/S0036144502409019},
+  url      = {https://doi.org/10.1137/S0036144502409019},
+  eprint   = { https://doi.org/10.1137/S0036144502409019},
+  abstract = { A new method is presented for distributing data in sparse matrix-vector multiplication. The method is two-dimensional, tries to minimize the true communication volume, and also tries to spread the computation and communication work evenly over the processors. The method starts with a recursive bipartitioning of the sparse matrix, each time splitting a rectangular matrix into two parts with a nearly equal number of nonzeros. The communication volume caused by the split is minimized. After the matrix partitioning, the input and output vectors are partitioned with the objective of minimizing the maximum communication volume per processor. Experimental results of our implementation, Mondriaan, for a set of sparse test matrices show a reduction in communication volume compared to one-dimensional methods, and in general a good balance in the communication work. Experimental timings of an actual parallel sparse matrix-vector multiplication on an SGI Origin 3800 computer show that a sufficiently large reduction in communication volume leads to savings in execution time.}
+}
+
+
