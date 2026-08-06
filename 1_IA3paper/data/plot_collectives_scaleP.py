@@ -2,11 +2,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+from style import figure, style_axes, save
+
 # Load the CSV file
 df = pd.read_csv('collectives_scaleP.csv')
 
 # Plot
-plt.figure(figsize=(10, 6))
+fig, ax = figure("rect")
 
 # also plot model:
 # reduce model: vector_length + 12 * (512 + 1) + 9/64 * 512
@@ -23,14 +25,11 @@ plt.plot(df['nPEs'], df['bcast-tomem'] / 1000, marker='o', linewidth=2, label='B
 plt.plot(df['nPEs'], df['bcast-model'] / 1000, linewidth=2, label='Broadcast Model', color='blue', linestyle='--')
 plt.plot(df['nPEs'], df['old-bcast-model']  / 1000, linewidth=2, label='Luczynski Broadcast Model', color='black', linestyle='--')
 
-plt.xlabel('P', fontsize=20)
-plt.ylabel('Time (µs)', fontsize=20)
-plt.xticks(fontsize=16)
-plt.yticks(fontsize=16)
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
+plt.xlabel('P')
+plt.ylabel('Time (µs)')
 
 plt.xscale('log', base=2)
-plt.legend(fontsize=20)
+plt.legend()
+style_axes(ax)
 
-plt.savefig('../figures/collectives_scaleP.pdf', dpi=300, format='pdf')
+save(fig, '../figures/collectives_scaleP.pdf')
