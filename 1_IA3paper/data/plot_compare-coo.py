@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from style import figure, style_axes, save
 
 
 results_df = pd.read_csv('random-vary-matrix-nrows.csv')
@@ -21,9 +22,7 @@ df_coo['bcast_model'] = df_coo['matrix_ncols'] / df_coo['ncols'] + (512 + 2) + n
 
 df_coo.sort_values('matrix_nrows', inplace=True)
 
-
-fs = 20
-fig, ax1 = plt.subplots(figsize=(8, 5))
+fig, ax1 = figure("rect")
 
 
 # Evaluate the model at the matrix sizes
@@ -80,18 +79,16 @@ slope, intercept = np.polyfit(x_fit, y_fit, 1)
 y_line = slope * x_fit + intercept
 
 
-ax1.legend(loc='upper left', fontsize=16)
+ax1.legend(loc='upper left')
 ax1.set_ylim(0, 1.1 * max(results_df['max_time'].max(), comm_model.max()))
-ax1.set_ylabel("Runtime (cycles)", fontsize=fs)
-ax1.tick_params(axis='y', labelsize=16)
-ax1.tick_params(axis='x', labelsize=16)
+ax1.set_ylabel("Runtime (cycles)")
+ax1.tick_params(axis='y')
+ax1.tick_params(axis='x')
 
 # Shared x-axis
-ax1.set_xlabel("Matrix Rows per PE row", fontsize=fs)
+ax1.set_xlabel("Matrix Rows per PE row")
 
 # Combine legends from both axes
 
-
-plt.tight_layout()
-plt.savefig('../figures/compare-coo.pdf', format='pdf')
-plt.close()
+style_axes(ax1)
+save(fig,'../figures/compare-coo.pdf')

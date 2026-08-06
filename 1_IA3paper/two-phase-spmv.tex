@@ -315,18 +315,16 @@ Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats
     \begin{subfigure}{\linewidth}
         \centering
         \includegraphics[width=\linewidth]{figures/compare-coo.pdf}
-        \caption{Scaling rows.}
         \label{fig:compare-coo-scalerows}
     \end{subfigure}
     \hfill
     \begin{subfigure}{\linewidth}
         \centering
         \includegraphics[width=\linewidth]{figures/compare-coo-scalennz.pdf}
-        \caption{Scaling nonzeros.}
         \label{fig:compare-coo-scalennz}
     \end{subfigure}
 
-    \caption{Comparison of the COO implementation under two scaling studies.}
+    \caption{Comparison of the COO implementation scaling both the matrix size and the matrix density while keeping the PE grid fixed at 512x512.}
     \label{fig:compare-coo}
 \end{figure}
 

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from style import figure, style_axes, save
 
 results_df = pd.read_csv('random-vary-nnz.csv')
 df_coo = pd.read_csv('rand-scale-nnz-results080326-coo.csv')
@@ -23,7 +24,7 @@ df_coo.sort_values('matrix_nrows', inplace=True)
 
 
 fs = 20
-fig, ax1 = plt.subplots(figsize=(8, 5))
+fig, ax1 = figure("rect")
 
 
 # Evaluate the model at the matrix sizes
@@ -69,18 +70,15 @@ ax1.plot(
 
 
 
-ax1.legend(loc='upper left', fontsize=16)
 ax1.set_ylim(0, 1.1 * results_df['max_time'].max())
-ax1.set_ylabel("Runtime (cycles)", fontsize=fs)
-ax1.tick_params(axis='y', labelsize=16)
-ax1.tick_params(axis='x', labelsize=16)
+ax1.set_ylabel("Runtime (cycles)")
+ax1.tick_params(axis='y')
+ax1.tick_params(axis='x')
 
 # Shared x-axis
-ax1.set_xlabel("Maz NNZ", fontsize=fs)
+ax1.set_xlabel("Maz NNZ")
 
 # Combine legends from both axes
 
-
-plt.tight_layout()
-plt.savefig('../figures/compare-coo-scalennz.pdf', format='pdf')
-plt.close()
+style_axes(ax1)
+save(fig,'../figures/compare-coo-scalennz.pdf')
