@@ -52,6 +52,8 @@ def main():
     df["MAX_NNZ"] = pd.to_numeric(df["MAX_NNZ"], errors="raise")
     df["matrix_nrows"] = pd.to_numeric(df["matrix_nrows"], errors="raise")
     df["_valid_bool"] = normalize_bool(df["valid"])
+    
+    df = df[df["NROWS"] == 512]
 
     # Derive a compact display name from matrix_file, e.g. /path/foo.npz -> foo
     df["matrix_name"] = (
@@ -61,6 +63,8 @@ def main():
         .str[-1]
         .str.replace(".npz", "", regex=False)
     )
+    
+    
 
     # For each matrix + mapping, keep only the row with minimum MAX_NNZ.
     # Tie-break by original row order for deterministic behavior.
