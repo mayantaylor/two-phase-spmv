@@ -83,12 +83,13 @@ def main():
         .reset_index(drop=True)
     )
     matrix_order = matrix_order_df["matrix_name"].tolist()
+    matrix_order[-1] = 'mawi'
     x_positions = {name: i for i, name in enumerate(matrix_order)}
 
     best_df["x"] = best_df["matrix_name"].map(x_positions)
     best_df["y"] = best_df["MAX_NNZ"]
 
-    fig, ax = plt.subplots(figsize=tuple(args.figsize))
+    fig, ax = plt.subplots(figsize=(10,6))
 
     # Plot valid and invalid separately so they are visibly distinct.
     # Valid: filled circle
@@ -149,16 +150,14 @@ def main():
             zorder=5,
         )
 
-    ax.set_xlabel("Matrix")
-    ax.set_ylabel("MAX_NNZ")
+    ax.set_ylabel("Max Nonzeros",fontsize=20)
     ax.set_yscale("log")
-    ax.set_title("Minimum MAX_NNZ per Matrix and Mapping Type")
 
     ax.set_xticks(range(len(matrix_order)))
-    ax.set_xticklabels(matrix_order, rotation=90)
+    ax.set_xticklabels(matrix_order, rotation=45, fontsize=16)
 
     ax.grid(True, axis="y", linestyle="--", alpha=0.35)
-    ax.legend(ncol=3, fontsize=9, loc='upper left')
+    ax.legend(ncol=3, fontsize=16, loc='upper left')
     plt.tight_layout()
 
     

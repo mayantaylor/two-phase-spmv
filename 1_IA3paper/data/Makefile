@@ -20,11 +20,11 @@ $(FIGDIR)/%.pdf: plot_%.py | $(FIGDIR)
 
 $(FIGDIR)/suite_sparse_manifest.pdf: plot_suite-sparse-manifest.py ss-results/080626manifest_full-coprimes.csv 
 	python3 plot_suite-sparse-manifest.py ss-results/080626manifest_full-coprimes.csv
-
-$(FIGDIR)/suite_sparse_gpu_comparison.pdf: ss-results/073026csr-manifest.csv ss-results/080326coo-512cyclic.csv plot_suite_sparse_comparison.py
+ 
+$(FIGDIR)/suite_sparse_gpu_comparison.pdf: plot_suite_sparse_comparison.py ss-results/080626results_full-coprimes.csv
 	python3 plot_suite_sparse_comparison.py
 
-$(FIGDIR)/suite_sparse_comm_model.pdf: ss-results/080326coo-512cyclic.csv plot_suite_sparse_comm_model.py
+$(FIGDIR)/suite_sparse_comm_model.pdf: plot_suite_sparse_comm_model.py ss-results/080626results_full-coprimes.csv
 	python3 plot_suite_sparse_comm_model.py
 
 $(FIGDIR)/compare-coo.pdf: plot_compare-coo.py random-vary-matrix-nrows.csv rand-scale-rows-results080326-coo.csv

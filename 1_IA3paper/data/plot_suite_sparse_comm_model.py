@@ -3,16 +3,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-results_df = pd.read_csv('ss-results/080326coo-512cyclic.csv')
-new_results_df = pd.read_csv('ss-results/080526coo-256_384.csv')
-coprime_df = pd.read_csv('ss-results/080526coo-coprimes512_256.csv')
 
 # Combine both dataframes
-combined_df = pd.concat([results_df, new_results_df, coprime_df], ignore_index=True)
+combined_df = pd.read_csv('ss-results/080626results_full-coprimes.csv')
 
 # Group by matrix name and take the row with minimum max_time for each matrix
 combined_df['matrix_name'] = combined_df['name'].astype(str).str.split('.').str[0]
-combined_df = combined_df.sort_values('max_time')
+combined_df = combined_df[combined_df['status'] != 'skipped']
+
+# Extract the mapping (cyclic/blocked/random) from the trailing token of `name`
+combined_df['mapping'] = combined_df['name'].astype(str).str.split('.').str[-1]
+
+# `format` is blank for the (implicit) column-major format and 'row' for row-major;
+# fill blanks so every row has an explicit label.
+combined_df['format'] = combined_df['format'].fillna('coo')
+combined_df.loc[combined_df['format'] == 'row', 'format'] = 'csr'
+
+combined_df = combined_df.sort_values('max_time', ascending=True)
 combined_df = combined_df.drop_duplicates(subset=['matrix_name'], keep='first')
 
 # Calculate models
@@ -21,9 +28,6 @@ combined_df['bcast_model'] = combined_df['matrix_ncols'] / combined_df['ncols'] 
 
 combined_df.sort_values('matrix_nrows', inplace=True)
 
-combined_df['nnz_max_capacity'] = pd.to_numeric(
-    combined_df['nnz_max_capacity'], errors='coerce'
-)
 
 # Create figure with subplots
 x = np.arange(len(combined_df))
@@ -61,12 +65,12 @@ bars = ax1.bar(
     label='Total time'
 )
 
-# Add nrows labels on top of bars
-for i, (bar, nrows) in enumerate(zip(bars, combined_df['nrows'])):
+# Add nrows + format/mapping labels on top of the "Total time" bars
+for bar, nrows, fmt, mapping in zip(bars, combined_df['nrows'], combined_df['format'], combined_df['mapping']):
     height = bar.get_height()
     ax1.text(bar.get_x() + bar.get_width()/2., height,
-            f'{int(nrows)}',
-            ha='center', va='bottom', fontsize=12, fontweight='bold')
+            f'{int(nrows)}\n{fmt}/{mapping}',
+            ha='center', va='bottom', fontsize=10, fontweight='bold')
 
 ax2.plot(
     x,

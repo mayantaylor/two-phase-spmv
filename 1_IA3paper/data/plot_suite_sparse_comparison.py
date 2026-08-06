@@ -6,15 +6,13 @@ import os
 
 df = pd.read_csv('ss-results/080326coo-gpu_eval.csv')
 
-results_df = pd.read_csv('ss-results/080326coo-512cyclic.csv')
-new_results_df = pd.read_csv('ss-results/080526coo-256_384.csv')
-coprime_df = pd.read_csv('ss-results/080526coo-coprimes512_256.csv')
-
-# Combine both dataframes
-wse_results_df = pd.concat([results_df, new_results_df, coprime_df], ignore_index=True)
+wse_results_df = pd.read_csv('ss-results/080626results_full-coprimes.csv')
 
 # Group by matrix name and take the row with minimum max_time for each matrix
 wse_results_df['matrix_name'] = wse_results_df['name'].astype(str).str.split('.').str[0]
+wse_results_df = wse_results_df[wse_results_df['status'] != 'skipped']
+
+# Group by matrix name and take the row with minimum max_time for each matrix
 wse_results_df = wse_results_df.sort_values('max_time')
 wse_results_df = wse_results_df.drop_duplicates(subset=['matrix_name'], keep='first')
 
@@ -49,8 +47,6 @@ font_size = 20
 df['speedup'] = df['gpu_mean_ms'] / df['max_time']
 
 df['nnz_capacity_ratio'] = df['nnz_max_capacity'] / (df['nnz'] / (df['nrows'] * df['ncols']))
-
-print(df)
 
 fig, ax1 = plt.subplots(figsize=(12, 5))
 ax2 = ax1.twinx()
