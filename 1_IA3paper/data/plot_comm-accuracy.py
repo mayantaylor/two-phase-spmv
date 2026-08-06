@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+from style import figure, style_axes, save
+
 # Read results
 df = pd.read_csv("matrix-space-wse.csv")
 
@@ -42,7 +44,7 @@ cases = [(closest_nrows, low), (closest_nrows, mid), (closest_nrows, high)]
 # cases = [(4096, 8), (4096, 32), (4096, 128)]
 
 # --- Plot ---
-fig, ax = plt.subplots(figsize=(7, 5))
+fig, ax = figure("rect")
 
 colors_list = plt.cm.viridis(np.linspace(0.15, 0.85, len(cases)))
 
@@ -54,24 +56,22 @@ for (nrows, nnz), color in zip(cases, colors_list):
     if sub.empty:
         continue
 
-    label_base = f"rows={nrows}, nnz={nnz}"
+    label_base = f"nnz/row={nnz}"
 
     ax.plot(
         sub["num_pes"], sub["max_time"],
         marker="o", color=color, linestyle="-",
-        label=f"{label_base} (actual)",
+        label=f"{label_base}",
     )
-    
+        
 ax.plot(
     sub["num_pes"], sub["comm_model"],
     marker="x", color='k', linestyle="--",
-    label=f"{label_base} (model)",
+    label=f"Communication Model",
 )
 
-ax.set_xlabel("Number of PEs")
-ax.set_ylabel("Time")
-ax.set_title("Comm Model vs Actual Runtime for Representative Cases")
-ax.legend(fontsize=8)
-
-plt.tight_layout()
-plt.savefig("../figures/comm-accuracy.pdf", format="pdf")
+ax.set_xlabel("PE Grid Size")
+ax.set_ylabel("Time (ms)")
+ax.legend()
+style_axes(ax)
+save(fig,"../figures/comm-accuracy.pdf" )
