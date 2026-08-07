@@ -17,7 +17,7 @@
 
 \usepackage[most]{tcolorbox}
 \usepackage{amsmath}
-
+\usepackage{url}
 \tcbset{
     equationbox/.style={
         enhanced,
@@ -82,24 +82,31 @@
 \end{IEEEkeywords}
 
 \section{Introduction}
-\begin{enumerate}
-    \item The broad goal: explore general unstructured sparse operations on dataflow.
-    \item Why SpMV
-    \item We approach the algorithm design through 1D collectives
-    \item We extrapolate the performance modeling of the 1D collectives to a communication model for SpMV
-    \item Then we evaluate both model and algorithm
-\end{enumerate}
-The big ideas:
-\begin{enumerate}
-    \item what is the algorithm for SpMV on the WSE? paramters: matrix, mapping (blocked, cyclic, random), sparse layout (coo, csr), PE grid size
-    \item what is the performance model and what are its shortcomings
-    \item evaluation: is the performance model accurate
-    \item evaluation: how well does the performance model enable us to make decisions about layout and resources for optimal performance?
-    \item evaluation: is the spmv performant? compare to GPU
-\end{enumerate}
+Spatial dataflow architectures are a class of accelerator that embody distributed memory on chip. Specifically, they are typically characterized by a 2D mesh of processing elements (PEs) each with fast local memory, general compute capabilites, and on-chip interconnects to their four cardinal neighbors. They largely eliminate the memory heirarchies that appear in CPUs and GPUs, and the result is very high throughput for problems that map well to the mesh. While originally designed for machine learning worklods, these architectures have shown increasing success for a niche class of scientific applications.
+
+The Cerebras Wafer-Scale Engine (WSE) is a dataflow architecture at wafer scale. It is manufactured from the largest square area of a silicon wafer at a total silicon area of 46,225 square millimeters, making it the largest chip in existence. The WSE has advanced the state of hardware manufacturing and demonstrated dramatic performance gains for machine learning workloads \cite{benchmarkllms,cerebras-blog,cerebras_story}.
+Recent work has also demonstrated exciting results for more general scientific workloads on the WSE, particularly for applications that map well to the WSE's spatial mesh. This includes stencil applications, molecular dynamics, finite volume computation, and fast fourier transforms \cite{wse_faststencil_rocki,wse_md,wse_mcpt,wse_stencil_jacquelin}.
+
+The existing work porting scientific applications to the WSE focuses primarily on problems with regular, structured data access. In this work, we begin exploration into more unstructured workloads, specifically through the lense of sparse, unstructured linear algebra.
+
+The sparse matrix-vector product (SpMV) is a sparse linear algebra kernel that appears across many numerical contexts as an important building block, from linear solvers to graph algorithms. While SpMV can be approached from a matrix-free perspective and implemented using stencils, we focus on SpMV where the sparsity pattern of the matrix does not have any simplifying structure. SpMV is not only an important kernel, it is also relatively simple and makes a good starting point for the investigation into unstructured sparse workloads on the WSE.
+
+We describe an algorithm for SpMV that can be broken down into two simple primitives on the WSE: 1D broadcast and reduce. We outline and analyze the different parameters to our algorithm and how they impact performance. Additionally, we present a corresponding performance model for specifically the communication involved in SpMV. To provide deeper context for SpMV on the WSE, we present a thorough performance analysis and a comparison to an Nvidia H200 GPU.
+
+
+% The big ideas:
+% \begin{enumerate}
+%     \item what is the algorithm for SpMV on the WSE? paramters: matrix, mapping (blocked, cyclic, random), sparse layout (coo, csr), PE grid size
+%     \item what is the performance model and what are its shortcomings
+%     \item evaluation: is the performance model accurate
+%     \item evaluation: how well does the performance model enable us to make decisions about layout and resources for optimal performance?
+%     \item evaluation: is the spmv performant? compare to GPU
+% \end{enumerate}
 
 \section{Background}
 \subsection{WSE Architecture}
+The WSE-3 is made up of around 900,000 PEs each with 48KB of local memory and a full wafer peak bandwidth of 21 PB/sec.
+
 \subsection{Tungsten and Paint}
 \subsection{Matrix-Free Approaches for SpMV on Cerebras}
 \subsection{Related Work }
@@ -477,6 +484,6 @@ Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Fig
 Thank you to Jon Berry and Kas Gabert at Sandia National Labs for their support learning the Tungsten model and discussions around mappings for SpMV. Additionally, thank you to Ilya
 
 \bibliographystyle{plain}
-\bibliography{references}
+\bibliography{two-phase-spmv}
 
 \end{document}
