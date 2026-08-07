@@ -19,8 +19,8 @@ wse_results_df = wse_results_df.sort_values('max_time')
 wse_results_df = wse_results_df.drop_duplicates(subset=['matrix_name'], keep='first')
 
 # Extract the last part of the matrix path (filename)
-df['matrix_name'] = df['matrix_path'].str.split('/').str[-1]
-wse_results_df['matrix_name'] = wse_results_df['name'].astype(str).str.split('.').str[0] + ".npz"
+df['matrix_name'] = df['matrix_path'].str.split('/').str[-1].str.split('.').str[0]
+wse_results_df['matrix_name'] = wse_results_df['name'].astype(str).str.split('.').str[0]
 
 df = df.groupby('matrix_name').agg({
     'gpu_mean_ms': 'mean',
@@ -106,7 +106,7 @@ ax2.set_ylim(new_rmin, rtop)
 
 # Shared x-axis
 ax1.set_xticks(x)
-ax1.set_xticklabels(df['matrix_name'], rotation=45, ha='right')
+ax1.set_xticklabels(df['matrix_name'], rotation=90, ha='right')
 
 # Combine legends from both axes
 lines1, labels1 = ax1.get_legend_handles_labels()

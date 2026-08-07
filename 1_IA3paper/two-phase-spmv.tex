@@ -18,6 +18,7 @@
 \usepackage[most]{tcolorbox}
 \usepackage{amsmath}
 \usepackage{url}
+
 \tcbset{
     equationbox/.style={
         enhanced,
@@ -58,7 +59,7 @@
 }
 
 \author{\IEEEauthorblockN{Maya Taylor, Luke Olson}
-    \IEEEauthorblockA{\textit{Department of Computer Science} \\
+    \IEEEauthorblockA{\textit{Siebel School of Computing and Data Science} \\
         \textit{University of Illinois at Urbana-Champaign}\\
         Champaign, IL USA \\
         mayat4@illinois.edu, lukeo@illinois.edu}}
@@ -71,9 +72,7 @@
 
     We study SpMV on a novel hardware accelerator, the Cerebras Wafer-Scale Engine (WSE). The WSE integrates almost 1 million processing elements on a single silicon wafer and promises extremely low-latency, high-bandwidth memory access. Exploiting these advantages, however, requires the right algorithm and data placement, presenting a difficult design problem particularly for unstructured sparse workloads.
 
-    We present the first algorithm for SpMV on the WSE and a companion communication model, with evaluation of both across various matrix sizes and sparsity structures. To provide context, we compare the WSE SpMV implementation to a CuSparse equivalent on the Nvidia H200 and achieve substantial speedup across both randomly generated matrices and a SuiteSparse selection.
-
-    This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and informs the most important directions for future work.
+    We present the first algorithm for SpMV on the WSE and a companion communication model, with evaluation of both across various matrix sizes and sparsity structures. To provide context, we compare the WSE SpMV implementation to a CuSparse equivalent on the Nvidia H200 and achieve substantial speedup across both randomly generated matrices and a SuiteSparse selection. This work provides insight into the utility of dataflow architectures like the WSE for general sparse workloads and informs the most important directions for future work.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -81,16 +80,21 @@
 \end{IEEEkeywords}
 
 \section{Introduction}
-Spatial dataflow architectures are a class of accelerator that embody distributed memory on chip. Specifically, they are typically characterized by a 2D mesh of processing elements (PEs) each with fast local memory, general compute capabilites, and on-chip interconnects to their four cardinal neighbors. They largely eliminate the memory heirarchies that appear in CPUs and GPUs, and the result is very high throughput for problems that map well to the mesh. While originally designed for machine learning worklods, these architectures have shown increasing success for a niche class of scientific applications.
+The sparse matrix-vector product (SpMV) is among the most heavily studied kernels in high-performance computing, but nonetheless remains difficult to accelerate: its performance is governed by memory access patterns dictated by the sparsity structure of the input, which varies widely across problem domains. As a result SpMV has seen extensive study including across many different hardware platforms, from CPUs and GPUs to distributed systems and processing-in-memory (PIM) architectures \cite{gao2024systematicliteraturesurveysparse,surveyspmv}.
 
-The Cerebras Wafer-Scale Engine (WSE) is a dataflow architecture at wafer scale. It is manufactured from the largest square area of a silicon wafer at a total silicon area of 46,225 square millimeters, making it the largest chip in existence. The WSE has advanced the state of hardware manufacturing and demonstrated dramatic performance gains for machine learning workloads \cite{benchmarkllms,cerebras-blog,cerebras_story}.
+The sensitivity to memory access cost demonstrated in SpMV highlights a rising consideration in computing, namely the growing gap between compute throughput and memory bandwidth. This motivates architectures that depart from the
+traditional model of a small number of powerful cores drawing from a shared, hierarchical
+memory. Spatial dataflow architectures instead distribute memory directly on chip via a 2D
+mesh of many simple processing elements (PEs), each paired with fast local memory and
+connected to its four cardinal neighbors. Under this model, computation happens where data already
+lives rather than requiring it to travel through a shared memory hierarchy.
+
+In this work, we develop an algorithm for SpMV on such a spatial dataflow accelerator, the Cerebras Wafer-Scale Engine (WSE). The WSE integrates a 2D PE mesh of almost 1 million PEs onto a massive square silicon area, and has demonstrated dramatic performance gains on the machine learning workloads it was originally designed for \cite{benchmarkllms,cerebras-blog,cerebras_story}.
 Recent work has also demonstrated exciting results for more general scientific workloads on the WSE, particularly for applications that map well to the WSE's spatial mesh. This includes stencil applications, molecular dynamics, finite volume computation, and fast fourier transforms \cite{wse_faststencil_rocki,wse_md,wse_mcpt,wse_stencil_jacquelin}.
 
-The existing work porting scientific applications to the WSE focuses primarily on problems with regular, structured data access. In this work, we begin exploration into more unstructured workloads, specifically through the lense of sparse, unstructured linear algebra.
+The existing scientific work on the WSE focuses primarily on problems with regular, structured data access. In this work, we begin exploration into more unstructured workloads on the WSE, using SpMV as our initial case study. While SpMV can be approached from a maix-free perspective in specific contexts and implemented using stencils, we do not make any assumptions about the matrix structure. Rather, we consider any general sparse matrix stored in COO and CSR formats.
 
-The sparse matrix-vector product (SpMV) is a sparse linear algebra kernel that appears across many numerical contexts as an important building block, from linear solvers to graph algorithms. While SpMV can be approached from a matrix-free perspective and implemented using stencils, we focus on SpMV where the sparsity pattern of the matrix does not have any simplifying structure. SpMV is not only an important kernel, it is also relatively simple and makes a good starting point for the investigation into unstructured sparse workloads on the WSE.
-
-We describe an algorithm for SpMV that can be broken down into two simple primitives on the WSE: 1D broadcast and reduce. We outline and analyze the different parameters to our algorithm and how they impact performance. Additionally, we present a corresponding performance model for specifically the communication involved in SpMV. To provide deeper context for SpMV on the WSE, we present a thorough performance analysis and a comparison to an Nvidia H200 GPU.
+We describe an algorithm for SpMV that can be broken down into two simple primitives on the WSE: 1D broadcast and reduce. We outline and analyze the different parameters to our algorithm and how they impact performance. Additionally, we present a corresponding communication model for SpMV. To provide deeper context for SpMV on the WSE, we present a thorough performance analysis and a comparison to an Nvidia H200 GPU.
 
 
 % The big ideas:
@@ -116,13 +120,13 @@ reducing overall communication costs through specific matrix
 partitioning or reordering techniques, as well as overlapping
 computation and communication processes"
 \section{1D Collectives}
-Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in \ref{tab:notation}, where $B$ and $P$ represent the same concepts as in the original paper. Note that here we understand $B$ slightly differently. Instead of referring to it as the vector size per PE, we understand $B$ as the number of consecutive vectors that are operated on. In this sense, it can be interpreted as the number of pipelined iterations of broadcast or reduction.
+Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in Table \ref{tab:notation}, where $P$ denotes the number of PEs used in the collective and $B$ denotes the number of consecutive vectors that are pipelined through the collective. Note that the original presentation of this model understands $B$ differently, as the 'vector length', but both definitions refer to the same context.
 
-In the original presentation of these collectives, Luczynski et al. also develop a performance model for them. This performance model is based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrive on a PE at the router to that message being received by the compute engine.
+Luczynski et al. develop a performance model for the 1D reduction and broadcast based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrival at a PE's router to message arrival at the PE's compute engine.
 
-We build on Luczynski et al. by (1) implementing the collectives in Tungsten and Paint, and (2) updating the performance model. Additionally, we introduce a new parameter $S$, the single-hop latency between PEs, from router to router. While this paramter clearly plays in to the results in earlier work, it has not yet been explicitly named. Additionally, we highlight the extra latency between PEs at reticle boundaries, $S_{ret}$, and factor it in to our updated performance modeling in addition to a parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
+We build on Luczynski et al. by updating the performance model to include reticle crossing latencies $S_{ret}$ and introduce a new parameter $S$, the single-hop latency between PEs from router to router. In factoring $S_{ret}$ into our performance model, we add a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension.
 
-Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. In evaluation of our collectives, we find $T_r = 5$ and $S = 2$. Results from a pingpong benchmark give us $S_{ret} = 9$.
+Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. Through empirical evaluation, we find $T_r = 5$, $S = 2$, and $S_{ret} = 9$.
 
 \begin{table}[t]
     \caption{Notation}
@@ -153,9 +157,10 @@ Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while a
 % Additionally, the pingpong benchmark exposes a new latency factor not discussed in previous work. At reticle boundaries, an additional overhead of around 9 cycles is added to the PE-to-PE latency. We refer to this additional latency as $S_{ret}$ and factor it in to our updated performance modeling, in addition to a parameter $C$ which denotes the number of reticle boundaries crossed, and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
 
 The performance model for both collectives can be broken into a latency term and a throughput term. The latency term describes how long it takes a single iteration of broadcast or reduce to complete, and the throughput term describes how closely multiple iterations can be pipelined.
-Luczynski et al. use the model in Equation \ref{eq:oldbcast}. The throughput term $B$ indicates that broadcast pipelines perfectly, which matches our findings. However, the latency term doesn't account for the 2 cycle PE-to-PE latency $S$, marking the largest difference between our models. Our model in Equation \ref{eq:newbcast} also adds a reticle overhead term.
 
-For the reduction, we add a reticle boundary crossing term to the model developed by Luczynski et al. in Equation \ref{eq:oldred}. We also explitily include $S$ for our updated reduce model in Equation \ref{eq:newred}.
+Luczynski et al. use the model in Equation \ref{eq:oldbcast}. The throughput term $B$ indicates that broadcast collective pipelines perfectly, which matches our findings. However, the latency term doesn't account for the 2 cycle PE-to-PE latency $S$, marking the largest difference between our models. Our model in Equation \ref{eq:newbcast} updates the latency term and also adds a reticle overhead term.
+
+For the reduction, we add a reticle boundary crossing term to the model developed by Luczynski et al. in Equation \ref{eq:oldred}. We also explicitly include $S$ for our updated reduce model in Equation \ref{eq:newred}.
 
 
 \begin{tcolorbox}[equationbox,title={Collective Model Updates}]
@@ -191,12 +196,12 @@ Figure \ref{fig:collectives} illustrate how our updated models compare to the tr
 
 \section{Two-Phase SpMV}
 We implement an algorithm to compute the sparse matrix-vector product  $Ax = y$ on the WSE using the 1D collectives as a basis.
-At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A$ is square and use $N$ to refer to the dimension of $A$. The PE grid dimensions are denoted by $(P_1, P_2)$, and the PE grid is typically also square.
+At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A \in \mathbb{R}^{N \times N}$ and use PE grid dimensions $(P_1, P_2)$, where typically $P_1 = P_2$.
 
 \subsection{Data Distribution}
 
 \textbf{Matrix Layout:}
-To use the 1D collectives for SpMV, the matrix $A$ must be distributed on the PE grid in such a fashion that two entries $a_{i_1,j_1}$ and $a_{i_2,j_2}$ are in the same PE column if $j_1 = j_2$ and the same PE row if $i_1 = i_2$. In other words, a single row or column of $A$ must be mapped to a single row or column of the PE grid, respectively. We'll refer to this constraint as row and column locality (RCL).
+To use the 1D collectives for SpMV, the matrix $A$ must be distributed on the PE grid in such a fashion that two entries $a_{i_1,j_1}$ and $a_{i_2,j_2}$ are in the same PE column if $j_1 = j_2$ and the same PE row if $i_1 = i_2$. In other words, a single row or column of $A$ must be mapped to a single row or column of the PE grid, respectively. We refer to this constraint as row and column locality (RCL).
 
 \textbf{Matrix Mappings:}
 We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, where we only consider mappings that satisfy RCL. In this work, we explore three mappings: blocked, cyclic, and random, but there are many other approaches to distributing a sparse matrix across a 2D mesh, including hypergraph partitioning and recursive block partitioning \cite{hypergraphforspmv,hypergraphcatalyurek,hypergraph,recursiveblock}.
@@ -213,7 +218,7 @@ broken down into two simple 1D collective phases:
     \item Reduce rows of partial products across mesh rows also in the order prescribed by the mapping.
 \end{enumerate}
 
-Ensuring that broadcasts and reductions proceed in a prescribed order means that indices of $x$ and row indices of the reductions do not need to be communicated - instead, they are implied by the order of arrival.
+Ensuring that broadcasts and reductions proceed in a prescribed order means that indices of $x$ and row indices of the reductions do not need to be communicated --- instead, they are implied by the order of arrival.
 In our implementation, the values of $x$ and the resulting values of $y$ are stored in 'moat' PEs: an extra row of PEs is set aside at the top of the
 mesh onto which the initial values of $x$ are loaded. Similarly, an extra column of PEs is allocated to the left of the grid wherein the result values $y$ are stored
 once computed. Alternatively, the implementation could be updated to stream the values of $x$ and $y$ on and off the mesh, eliminating the need for moat PEs and the corresponding buffers for $x$ and $y$. This streaming optimization is left for future work.
@@ -226,7 +231,7 @@ Locally, each PE processes the SpMV in three distinct phases with serialization 
 \end{enumerate}
 In theory, local synchronizations between these three components are not necessary. For example, early incoming broadcasts could trigger some subset of the compute before all broadcasts are received.
 While Tungsten does provide constructs that would support more overlap
-of communication and computation here, we evaluated a couple different approaches and found that the serial approach consistently performed best.
+of communication and computation here, we evaluated several different approaches and found that the serial approach consistently performed best.
 
 Even though the kernel for each PE enforces this serialization, the global algorithm is not bulk-synchronous. Broadcasts and reductions can proceed
 in increments of single PE steps, allowing incremental progress through the grid and an overlap of communication and computation. In practice, this might look like reductions near the top of the grid completing before those lower in the grid. We expect that this wavefront behavior would allow some pipelining of multiple SpMVs but this evaluation is left for future work.
