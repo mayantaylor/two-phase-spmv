@@ -63,6 +63,12 @@ for (nrows, nnz), color in zip(cases, colors_list):
         marker="o", color=color, linestyle="-",
         label=f"{label_base}",
     )
+    
+    ax.plot(
+        sub["num_pes"], sub["max_chain_time"],
+        color=color, linestyle="dotted",
+        label=f"{label_base} max computation",
+    )
         
 ax.plot(
     sub["num_pes"], sub["comm_model"],

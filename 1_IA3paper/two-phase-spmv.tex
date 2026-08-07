@@ -117,14 +117,13 @@ language and compiler for the WSE, and Paint is the corresponding communication 
 output to achieve the best performance
 \cite{wse_md}, which we do not attempt.
 
-\subsection{Related Work }
-but there are many other approaches to distributing a sparse matrix across a 2D mesh, including hypergraph partitioning and recursive block partitioning \cite{hypergraphforspmv,hypergraphcatalyurek,hypergraph,recursiveblock}.
+\section{Related Work }
+SpMV has seen extensive study spanning techniques for sparse matrix storage, mixed-precision, autotuning, and portability to different architectures. Gao et al. provide a recent and comprehensive literature review \cite{gao2024systematicliteraturesurveysparse}. The areas of SpMV development most relevant to our work are in distributed memory, and PIM architectures.
 
+In the distributed memory context, inter-node communication becomes a dominant performance factor. Matrix partitioning strategies, including hypergraph and recursive block partitioning, are used to reduce communication \cite{hypergraphforspmv,hypergraphcatalyurek,hypergraph,recursiveblock}. Most closely related to the current work, Bylina et al. map SpMV to a 2D grid of CPUs using a 2D blocked matrix partitioning, equivalent to our 'blocked' mapping described in Section \ref{sec:mapping} \cite{2dpartitioningspmv}.
 
-\cite{gao2024systematicliteraturesurveysparse} Mentions for distributed archs: "Current research efforts primarily focus on
-reducing overall communication costs through specific matrix
-partitioning or reordering techniques, as well as overlapping
-computation and communication processes"
+PIM architectures exhibit similar characteristics to dataflow architectures, with the goal of colocating memory and compute. Xie et al. develop SpaceA, a PIM architecture for SpMV specifically, and a mapping scheme to optimize for load balance and locality by colocating rows of the matrix with similar sparsity structure \cite{PIM-spaceA}.
+
 \section{1D Collectives}
 \label{sec:colls}
 
@@ -154,7 +153,7 @@ Luczynski et al. originally present a set of 1D and 2D collectives implemented i
     \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
     \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
         between a PE's router and compute engine, and additional reticle
-        crossing overhead ($S_{ret}$).}
+        crossing overhead ($S_{ret}$) for a row of 3 PEs.}
     \label{fig:ramp-latency}
 \end{figure}
 
@@ -221,6 +220,7 @@ We implement an algorithm to compute the sparse matrix-vector product  $Ax = y$ 
 At a high level, the algorithm involves distributing the coefficients of $A$ across a 2D grid of PEs, broadcasting values of $x$ vertically through PE columns, and reducing values of $y$ across PE rows. The algorithm makes some assumptions about the matrix layout but otherwise supports a wide parameter space across various matrix mappings, sparse storage options, and PE grid size choices. In the following discussion, we assume $A \in \mathbb{R}^{N \times N}$ and use PE grid dimensions $(P_1, P_2)$, where typically $P_1 = P_2$.
 
 \subsection{Data Distribution}
+\label{sec:mapping}
 
 \textbf{Matrix Layout:}
 To use the 1D collectives for SpMV, the matrix $A$ must be distributed on the PE grid in such a fashion that two entries $a_{i_1,j_1}$ and $a_{i_2,j_2}$ are in the same PE column if $j_1 = j_2$ and the same PE row if $i_1 = i_2$. In other words, a single row or column of $A$ must be mapped to a single row or column of the PE grid, respectively. We refer to this constraint as row and column locality (RCL).
@@ -339,7 +339,7 @@ On our selection, this configuration achieves up to a 1.3x speedup over the defa
 \section{Evaluation}
 
 \subsection{COO vs CSR}
-Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats under two scaling configurations. CSR is consistently slower than COO but particularly suffers when scaling the number of rows. Still, in later evaluation of SuiteSparse matrices, we find that CSR is occasionally better than COO.
+The choice of matrix storage format impacts the per-PE memory requirements and the Tungsten compute kernel. In Figure \ref{fig:compare-coo} we evaluate both algorithmic variants across different matrix sizes and densities. CSR is consistently slower than COO but particularly suffers when scaling the number of rows. This result is unexpected, and may be indicative of compiler inefficiencies. Despite these results, our remaining evaluation uses both COO and CSR and we find that there are more complex cases where CSR out performs COO.
 
 \label{sec:coovscsr}
 \begin{figure}[]
@@ -362,14 +362,9 @@ Figure \ref{fig:compare-coo} compares the performance of the COO and CSR formats
 \end{figure}
 
 \subsection{Model Evaluation}
-We evaluate our SpMV communication model using randomly generated matrices under the assumption of uniformly distributed nonzeros, and associated relative load balance.
-Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices on the accuracy of the communcation model.
+We evaluate our SpMV communication model using randomly generated matrices under the assumption of uniformly distributed nonzeros, and associated relative load balance. Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices on the accuracy of the communcation model.
 
-Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. For the matrix with the fewest nonzeros, the communication model captures the SpMV performance almost perfectly. For more dense matrices, the left hand side of the figure shows that, as expected, when compute dominates the communication model is not a good predictor. As the compute per PE decreases towards the right of the figure, performance approaches the modeled result.
-
-\textcolor{green}{TODO: mention that the max pe compute time very closely models the rest of the performance, and add it to the plot.}
-
-
+Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. The Figure also illustrates the compuatation time measured on the most overloaded PE for each run for an approximate understanding of the ratio of compute to communication. For the matrix with the fewest nonzeros, the communication model captures the SpMV performance almost perfectly. For more dense matrices, the left hand side of the figure shows that, as expected, when compute dominates the communication model is not a good performance predictor. As the compute per PE decreases towards the right of the figure, performance approaches the modeled result.
 
 \begin{figure}
     \centering
@@ -492,16 +487,7 @@ Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Fig
 \end{figure}
 
 
-\section{Future Work}
-\begin{itemize}
-    \item \cite{gao2024systematicliteraturesurveysparse} mentions new compression formats (besides COO and CSR) which might provide better 2D decomposition load balance.
-    \item \cite{PIM-spaceA} architecture for PIM. gao paper mentions: "From a
-          software perspective, they design a mapping scheme for sparse
-          matrices to achieve workload balance and exploit the locality
-          of the multiplied vector. A key optimization idea in the mapping scheme is the assignment of rows with similar column
-          index patterns to the same processing element (PE). "
 
-\end{itemize}
 
 
 \section{Conclusion}
