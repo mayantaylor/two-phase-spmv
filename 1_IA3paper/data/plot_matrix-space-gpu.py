@@ -32,7 +32,6 @@ for nnzpr in nnz_per_rows:
         subset["rows"],
         subset["gpu_coo_alg1_bw_GBs"],
         marker="o",
-        linewidth=2,
         label=f"{nnzpr} nnz/row",
     )
 

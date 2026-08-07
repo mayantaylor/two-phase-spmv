@@ -67,14 +67,13 @@
 \maketitle
 
 \begin{abstract}
-    Sparse linear algebra kernels are foundational to scientific computing, but also notoriously difficult to accelerate. Particular challenges arise due to their irregular memory access and load imbalance. We investigate these challenges on a spatial dataflow architecture: the Cerebras Wafer-Scale Engine (WSE). Designed for dense neural network workloads, this architecture promises extremely low latency memory access but requires the right algorithm and data placement, presenting a difficult design problem for sparse workloads.
+    Sparse matrix vector multiplication (SpMV) is a crutial component of many numerical workloads, from linear solvers to graph algorithms. SpMV is characterized by expensive, irregular memory access and computational load imbalance, making it one of a challenging and widely studied kernels in high-performance computing.
 
-    The sparse matrix-vector product (SpMV) is a simple but valuable first case study on the WSE.
-    We present the first algorithm for SpMV on the WSE and a companion communication model.
-    We evaluate both across various matrix sizes and structures, demonstrating the accuracy and utility of the communication model and discussing its shortcomings.
-    We also compare the WSE SpMV implementation to a CuSparse equivalent for context to more conventional implementation performance.
-    This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and
-    informs the most important directions for future work.
+    We study SpMV on a novel hardware accelerator, the Cerebras Wafer-Scale Engine (WSE). The WSE integrates almost 1 million processing elements on a single silicon wafer and promises extremely low-latency, high-bandwidth memory access. Exploiting these advantages, however, requires the right algorithm and data placement, presenting a difficult design problem particularly for unstructured sparse workloads.
+
+    We present the first algorithm for SpMV on the WSE and a companion communication model, with evaluation of both across various matrix sizes and sparsity structures. To provide context, we compare the WSE SpMV implementation to a CuSparse equivalent on the Nvidia H200 and achieve substantial speedup across both randomly generated matrices and a SuiteSparse selection.
+
+    This work provides insight into the utility of spatial dataflow architectures for general sparse workloads and informs the most important directions for future work.
 \end{abstract}
 
 \begin{IEEEkeywords}

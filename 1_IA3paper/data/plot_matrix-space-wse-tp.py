@@ -56,7 +56,6 @@ for nnzpr in nnz_per_rows:
         subset["matrix_nrows"],
         subset["throughput_GBs"],
         marker="o",
-        linewidth=2,
         #label=f"{nnzpr} nnz/row",
     )
 

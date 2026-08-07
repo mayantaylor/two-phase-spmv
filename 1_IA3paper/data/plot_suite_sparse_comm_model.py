@@ -79,13 +79,12 @@ ax2.plot(
     combined_df['nnz_max_capacity'],
     color='black',
     marker='o',
-    markersize=2,
     label='Max NNZ capacity',
 )
 
 ax2.set_ylabel("Max NNZ Count",)
 ax2.tick_params(axis='y')
-ax2.legend(loc='center right',)
+ax2.legend(loc='upper right',)
 
 ax1.legend(loc='upper left',)
 
@@ -93,10 +92,10 @@ ax1.set_ylabel("Runtime (ms)",)
 ax1.tick_params(axis='y')
 
 ax1.set_ylim(top=.03)
-ax2.set_ylim(top=600)
+ax2.set_ylim(top=800)
 
 # Shared x-axis
 ax1.set_xticks(x)
-ax1.set_xticklabels(combined_df['matrix_name'], rotation=45, ha='right',)
+ax1.set_xticklabels(combined_df['matrix_name'], rotation=90, ha='right',)
 style_axes(ax1)
 save(fig,'../figures/suite_sparse_comm_model.pdf')

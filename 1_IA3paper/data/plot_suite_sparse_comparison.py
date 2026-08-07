@@ -65,7 +65,7 @@ ax1.bar(
     alpha=0.7,
     label='WSE Speedup',
 )
-ax1.axhline(1, color='red', linestyle='--', linewidth=1)
+ax1.axhline(1, color='red', linestyle='--')
 
 ax1.set_ylabel("WSE Speedup", color='tab:blue')
 ax1.tick_params(axis='y', labelcolor='tab:blue')
