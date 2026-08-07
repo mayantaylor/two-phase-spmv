@@ -6,8 +6,8 @@ RAND_EVAL_FIGURES := compare-coo compare-coo-scalennz comm-accuracy
 SUITESPARSE_FIGURES := suite_sparse_manifest suite_sparse_gpu_comparison suite_sparse_comm_model 
 MATRIX_SPACE_FIGURES := matrix-space-gpu matrix-space-speedup matrix-space-wse matrix-space-wse-mincomm matrix-space-wse-tp
 
-FIGURES := $(COLLECTIVE_FIGURES) $(SUITESPARSE_FIGURES) $(RAND_EVAL_FIGURES) $(MATRIX_SPACE_FIGURES)
-TARGETS := $(addprefix $(FIGDIR)/,$(addsuffix .pdf,$(FIGURES))) $(FIGDIR)/suite_sparse_matrices.tex
+FIGURES := $(COLLECTIVE_FIGURES) $(SUITESPARSE_FIGURES) $(RAND_EVAL_FIGURES) $(MATRIX_SPACE_FIGURES) ramp_latency_fig
+TARGETS := $(addprefix $(FIGDIR)/,$(addsuffix .pdf,$(FIGURES))) $(FIGDIR)/suite_sparse_matrices.tex 
 
 PLOT_STYLE := style.py
 
@@ -37,6 +37,9 @@ $(FIGDIR)/compare-coo-scalennz.pdf: plot_compare-coo-scalennz.py random-vary-nnz
 
 $(FIGDIR)/suite_sparse_matrices.tex: ss-results/matrix-stats.csv plot_suite_sparse_matrices_totex.py 
 	python3 plot_suite_sparse_matrices_totex.py
+
+$(FIGDIR)/ramp_latency_fig.pdf: ramp_latency_fig.tex
+	pdflatex -output-directory=$(FIGDIR) ramp_latency_fig.tex
 
 $(FIGDIR):
 	mkdir -p $(FIGDIR)

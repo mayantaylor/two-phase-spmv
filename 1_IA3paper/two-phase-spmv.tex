@@ -19,6 +19,9 @@
 \usepackage{amsmath}
 \usepackage{url}
 
+\usepackage{tikz}
+
+
 \tcbset{
     equationbox/.style={
         enhanced,
@@ -107,24 +110,38 @@ We describe an algorithm for SpMV that can be broken down into two simple primit
 % \end{enumerate}
 
 \section{Background}
-\subsection{WSE Architecture}
-The WSE-3 is made up of around 900,000 PEs each with 48KB of local memory and a full wafer peak bandwidth of 21 PB/sec.
+The WSE-3 is made up of around 900,000 PEs each with 48KB of local memory and a full wafer peak bandwidth of 21 PB/sec. While the maximum size of a conventional chip is limited by the size of a \textit{reticle}, the lithographic stencil used when printing circuits onto silicon, the WSE-3 enables wafer-scale fabrication by stitching reticles together to produce a chip roughly 22cm in dimension \cite{manufacturingwse,hu2023waferscalecomputingadvancementschallenges}. As discussed in Section \ref{sec:colls}, the resulting mesh achieves very low latency inter-PE communication with a slight overhead across reticle boundaries.
 
-\subsection{Tungsten and Paint}
-\subsection{Matrix-Free Approaches for SpMV on Cerebras}
+To program the WSE, Cerebras supports a high-level machine learning framework via the Cerebras Software Platform CSoft \cite{csoft_platform}. More general purpose computing is enabled via the low level Cerebras SDK \cite{cerebras_sdk_whitepaper}. In this work, we use a third programming framework \textit{Tungsten}. Tungsten is a not-yet public, actively evolving programming
+language and compiler for the WSE. As with any developmental compiler, some of the implementation choices in this work (Section \ref{sec:coovscsr}) reflect current compiler behavior and may shift as the stack matures. Recent work implemented in Tungsten notes hand-tuning compiler
+output to achieve the best performance
+\cite{wse_md}, which we do not attempt.
+
 \subsection{Related Work }
-Spmv on other architectures
+but there are many other approaches to distributing a sparse matrix across a 2D mesh, including hypergraph partitioning and recursive block partitioning \cite{hypergraphforspmv,hypergraphcatalyurek,hypergraph,recursiveblock}.
+
 
 \cite{gao2024systematicliteraturesurveysparse} Mentions for distributed archs: "Current research efforts primarily focus on
 reducing overall communication costs through specific matrix
 partitioning or reordering techniques, as well as overlapping
 computation and communication processes"
 \section{1D Collectives}
+\label{sec:colls}
 Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in Table \ref{tab:notation}, where $P$ denotes the number of PEs used in the collective and $B$ denotes the number of consecutive vectors that are pipelined through the collective. Note that the original presentation of this model understands $B$ differently, as the 'vector length', but both definitions refer to the same context.
+...
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
+    \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
+        between a PE's router and compute engine, and additional reticle
+        crossing overhead ($S_{ret}$).}
+    \label{fig:ramp-latency}
+\end{figure}
 
 Luczynski et al. develop a performance model for the 1D reduction and broadcast based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrival at a PE's router to message arrival at the PE's compute engine.
 
-We build on Luczynski et al. by updating the performance model to include reticle crossing latencies $S_{ret}$ and introduce a new parameter $S$, the single-hop latency between PEs from router to router. In factoring $S_{ret}$ into our performance model, we add a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension.
+We build on Luczynski et al. by updating the performance model to include reticle crossing latencies $S_{ret}$ and explicitly label the single-hop latency between PEs from router to router ($S$). In factoring $S_{ret}$ into our performance model, we add a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension.
 
 Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. Through empirical evaluation, we find $T_r = 5$, $S = 2$, and $S_{ret} = 9$.
 
@@ -204,7 +221,7 @@ At a high level, the algorithm involves distributing the coefficients of $A$ acr
 To use the 1D collectives for SpMV, the matrix $A$ must be distributed on the PE grid in such a fashion that two entries $a_{i_1,j_1}$ and $a_{i_2,j_2}$ are in the same PE column if $j_1 = j_2$ and the same PE row if $i_1 = i_2$. In other words, a single row or column of $A$ must be mapped to a single row or column of the PE grid, respectively. We refer to this constraint as row and column locality (RCL).
 
 \textbf{Matrix Mappings:}
-We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, where we only consider mappings that satisfy RCL. In this work, we explore three mappings: blocked, cyclic, and random, but there are many other approaches to distributing a sparse matrix across a 2D mesh, including hypergraph partitioning and recursive block partitioning \cite{hypergraphforspmv,hypergraphcatalyurek,hypergraph,recursiveblock}.
+We use the term 'mapping' to refer to how the coefficients of $A$ are placed on the PE grid, where we only consider mappings that satisfy RCL. In this work, we explore three mappings: blocked, cyclic, and random.
 
 Our blocked mapping does a basic 2D blocked decomposition of the rows and columns of $A$. This mapping is perhaps the easiest to visualize, but often produces large load imbalance across PEs, especially when the matrix has a banded or diagonal structure.
 
