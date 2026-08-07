@@ -110,10 +110,10 @@ We describe an algorithm for SpMV that can be broken down into two simple primit
 % \end{enumerate}
 
 \section{Background}
-The WSE-3 is made up of around 900,000 PEs each with 48KB of local memory and a full wafer peak bandwidth of 21 PB/sec. While the maximum size of a conventional chip is limited by the size of a \textit{reticle}, the lithographic stencil used when printing circuits onto silicon, the WSE-3 enables wafer-scale fabrication by stitching reticles together to produce a chip roughly 22cm in dimension \cite{manufacturingwse,hu2023waferscalecomputingadvancementschallenges}. As discussed in Section \ref{sec:colls}, the resulting mesh achieves very low latency inter-PE communication with a slight overhead across reticle boundaries.
+The WSE-3 is made up of around 900,000 PEs each with 48KB of local memory and a full wafer peak bandwidth of 21 PB/sec. Each PE has a router with connections to its four cardinal neighbors and a local general purpose compute engine (CE). While the maximum size of a conventional chip is limited by the size of a \textit{reticle}, the lithographic stencil used when printing circuits onto silicon, the WSE-3 enables wafer-scale fabrication by stitching reticles together to produce a chip roughly 22cm in dimension \cite{manufacturingwse,hu2023waferscalecomputingadvancementschallenges}. As discussed in Section \ref{sec:colls}, the resulting mesh achieves very low latency inter-PE communication with a slight overhead across reticle boundaries.
 
-To program the WSE, Cerebras supports a high-level machine learning framework via the Cerebras Software Platform CSoft \cite{csoft_platform}. More general purpose computing is enabled via the low level Cerebras SDK \cite{cerebras_sdk_whitepaper}. In this work, we use a third programming framework \textit{Tungsten}. Tungsten is a not-yet public, actively evolving programming
-language and compiler for the WSE. As with any developmental compiler, some of the implementation choices in this work (Section \ref{sec:coovscsr}) reflect current compiler behavior and may shift as the stack matures. Recent work implemented in Tungsten notes hand-tuning compiler
+To program the WSE, Cerebras supports a high-level machine learning framework via the Cerebras Software Platform CSoft \cite{csoft_platform}. More general purpose computing is enabled via the low level Cerebras SDK \cite{cerebras_sdk_whitepaper}. In this work, we use a third programming framework \textit{Tungsten and Paint}. Tungsten is a not-yet public, actively evolving programming
+language and compiler for the WSE, and Paint is the corresponding communication orchestration language. As with any developmental compiler, some of the implementation choices in this work (Section \ref{sec:coovscsr}) reflect current compiler behavior and may shift as the stack matures. Recent work implemented in Tungsten notes hand-tuning compiler
 output to achieve the best performance
 \cite{wse_md}, which we do not attempt.
 
@@ -127,23 +127,6 @@ partitioning or reordering techniques, as well as overlapping
 computation and communication processes"
 \section{1D Collectives}
 \label{sec:colls}
-Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in Table \ref{tab:notation}, where $P$ denotes the number of PEs used in the collective and $B$ denotes the number of consecutive vectors that are pipelined through the collective. Note that the original presentation of this model understands $B$ differently, as the 'vector length', but both definitions refer to the same context.
-...
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
-    \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
-        between a PE's router and compute engine, and additional reticle
-        crossing overhead ($S_{ret}$).}
-    \label{fig:ramp-latency}
-\end{figure}
-
-Luczynski et al. develop a performance model for the 1D reduction and broadcast based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrival at a PE's router to message arrival at the PE's compute engine.
-
-We build on Luczynski et al. by updating the performance model to include reticle crossing latencies $S_{ret}$ and explicitly label the single-hop latency between PEs from router to router ($S$). In factoring $S_{ret}$ into our performance model, we add a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension.
-
-Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while an earlier work from Tramm et al. estimates 7 cycles. Through empirical evaluation, we find $T_r = 5$, $S = 2$, and $S_{ret} = 9$.
 
 \begin{table}[t]
     \caption{Notation}
@@ -164,6 +147,26 @@ Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while a
     \label{tab:notation}
 \end{table}
 
+Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in Table \ref{tab:notation}, where $P$ denotes the number of PEs used in the collective and $B$ denotes the number of consecutive vectors that are pipelined through the collective. Note that the original presentation of this model understands $B$ differently, as the 'vector length', but both definitions refer to the same context.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
+    \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
+        between a PE's router and compute engine, and additional reticle
+        crossing overhead ($S_{ret}$).}
+    \label{fig:ramp-latency}
+\end{figure}
+
+Luczynski et al. develop a performance model for the 1D reduction and broadcast based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrival at a PE's router to message arrival at the PE's compute engine, visualized in Figure \ref{fig:ramp-latency} for a row of three PEs, each with a local router and CE.
+
+As highlighted in Figure \ref{fig:ramp-latency}, we update the performance model to (1) explicitly label the single-hop latency between PEs as $S$, and (2) include reticle boundary crossing latencies $S_{ret}$.
+In accounting for $S_{ret}$ into our performance model, we require a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension (we find reticles to be approximately 64 PEs wide by 168 PEs tall).
+
+Luczynski et al. use a ramp latency $T_{ramp}$ of 2 cycles, while an earlier work from Tramm et al. finds 7 cycles. Through empirical evaluation, we find $T_r = 5$, $S = 2$, and $S_{ret} = 9$, and these values are used throughout this work.
+
+
+
 % \subsection{Parameter Study}
 % Before building the full collectives, we evaluate a pair-wise pingpong benchmark to capture the communication latencies between PEs and understand the ramp latency.
 
@@ -172,28 +175,30 @@ Luczynski et al. find the ramp latency $T_{ramp}$ to be around 2 cycles, while a
 % for our collectives Our pingpong results show a full round trip requires 14 cycles, which includes 2 ramp traversals from CE to router, 2 from router to CE, and 2 PE-to-PE traversals. In the additional context of our collective performance (discussed below), we estimate $T_r$ around 2 to 3 cycles, $S = 2$. Moving forward, we use $T_r = 2.5$ and note that it is possible the two ramp directions perform slightly differently, averaging out at $2.5$.
 
 % Additionally, the pingpong benchmark exposes a new latency factor not discussed in previous work. At reticle boundaries, an additional overhead of around 9 cycles is added to the PE-to-PE latency. We refer to this additional latency as $S_{ret}$ and factor it in to our updated performance modeling, in addition to a parameter $C$ which denotes the number of reticle boundaries crossed, and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
+\subsection{Performance Model}
 
 The performance model for both collectives can be broken into a latency term and a throughput term. The latency term describes how long it takes a single iteration of broadcast or reduce to complete, and the throughput term describes how closely multiple iterations can be pipelined.
 
-Luczynski et al. use the model in Equation \ref{eq:oldbcast}. The throughput term $B$ indicates that broadcast collective pipelines perfectly, which matches our findings. However, the latency term doesn't account for the 2 cycle PE-to-PE latency $S$, marking the largest difference between our models. Our model in Equation \ref{eq:newbcast} updates the latency term and also adds a reticle overhead term.
+\textbf{Broadcast} on the WSE makes use of WSE router support for simultaneously forwarding a message to the next PE while sending it down the ramp. For a single message broadcast through a chain of $P$ PEs, this means that the only observed latency is the ramp traversal at the beginning and end of the chain, along with the $P$ PE-to-PE hops. The down-ramp latencies into each PE along the chain are not included because they are overlapped with message forwarding. In terms of throughput, multiple broadcasts can be pipelined perfectly.
 
-For the reduction, we add a reticle boundary crossing term to the model developed by Luczynski et al. in Equation \ref{eq:oldred}. We also explicitly include $S$ for our updated reduce model in Equation \ref{eq:newred}.
+Luczynski et al. use the model in Equation \ref{eq:oldbcast} to describe this pattern. The throughput term $B$ aligns with our findings, but the latency term doesn't account for the 2 cycle PE-to-PE latency $S$. This marks the largest difference between our models. Our proposed update in Equation \ref{eq:newbcast} adds this $S$ dependency and additionally accounts for the reticle crossing overhead, dependent on $T_{ret}$ and $C$.
 
+\textbf{Reduction} follows a similar logic to broadcast, but requires data to pass through the CE of each PE. This impacts the latency term, which now includes ramp latencies for each PE along the chain, instead of just the beginning and end. The Luczynski et al. model in Equation \ref{eq:oldred} captures this latency term as $(2T_r + 2)P$ and does in fact account for $S=2$, if not explicitly. We rewrite the model in terms of $S$ and include our reticle overhead term $T_{ret} C$ in Equation \ref{eq:newred}.
 
-\begin{tcolorbox}[equationbox,title={Collective Model Updates}]
+\begin{tcolorbox}[equationbox,title={1D Collective Model Updates}]
     \begin{align}
         M_{b}(B, P)      & = B + P +  2T_r
-        \label{eq:oldbcast}                          \\
-        M_{b}^*(B, P, C) & = B + S * P + 2 T_r + 9 C
-        \label{eq:newbcast}                          \\
+        \label{eq:oldbcast}                                \\
         M_{r}(B, P)      & = B + (2T_r + 2) P
-        \label{eq:oldred}                            \\
-        M_{r}^*(B, P, C) & = B + (2T_r + S) P + 9C
+        \label{eq:oldred}                                  \\
+        M_{b}^*(B, P, C) & = B + S * P + 2 T_r + T_{ret} C
+        \label{eq:newbcast}                                \\
+        M_{r}^*(B, P, C) & = B + (2T_r + S) P +  T_{ret} C
         \label{eq:newred}
     \end{align}
 \end{tcolorbox}
 
-Figure \ref{fig:collectives} illustrate how our updated models compare to the true collective performance, for both scaling of $B$ and $P$. For this evaluation, both collectives are implemented in Tungsten and Paint and evaluated on the WSE3. Cycle counts are converted to runtime assuming a 1GHz clock rate. Particularly, we demonstrate that our update to the latency term for the broadcast model aligns better with true performance.
+Figure \ref{fig:collectives} illustrates how our updated models compare to the true collective performance, both scaling $B$ and $P$. For this evaluation, both collectives are implemented in Tungsten and Paint and evaluated on the WSE3, and measured cycle counts are converted to runtime assuming a 1GHz clock rate. In particular, these results demonstrate that our update to the latency term for the broadcast model aligns better with true performance.
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}{0.48\textwidth}
@@ -207,7 +212,7 @@ Figure \ref{fig:collectives} illustrate how our updated models compare to the tr
     \end{subfigure}
 
 
-    \caption{Evaluation of the 1D collectives and corresponding performance models. Results scaling B are evaluated on a row of 512 PEs, and results scaling P set B=256.}
+    \caption{Evaluation of the 1D collectives and corresponding performance models. Results scaling $B$ are evaluated on a row of 512 PEs, and results scaling $P$ set $B=256$.}
     \label{fig:collectives}
 \end{figure}
 

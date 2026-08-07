@@ -27,7 +27,7 @@ plt.plot(df['vector length'], df['old-bcast-model'] / 1000,  label='Luczynski Br
 
 plt.xlabel('B')
 plt.ylabel('Time (µs)')
-
+plt.legend()
 plt.xscale('log', base=2)
 style_axes(ax)
 save(fig,'../figures/collectives_scaleB.pdf')
