@@ -6,6 +6,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from style import figure, style_axes, save
+
 
 MAPPING_COLORS = {
     "blocked": "tab:blue",
@@ -83,13 +85,13 @@ def main():
         .reset_index(drop=True)
     )
     matrix_order = matrix_order_df["matrix_name"].tolist()
-    matrix_order[-1] = 'mawi'
     x_positions = {name: i for i, name in enumerate(matrix_order)}
 
     best_df["x"] = best_df["matrix_name"].map(x_positions)
     best_df["y"] = best_df["MAX_NNZ"]
 
-    fig, ax = plt.subplots(figsize=(10,6))
+    fig, ax = figure("rect")
+
 
     # Plot valid and invalid separately so they are visibly distinct.
     # Valid: filled circle
@@ -108,10 +110,9 @@ def main():
                 sub_valid["y"],
                 color=color,
                 marker="o",
-                s=70,
+                s=40,
                 edgecolors="black",
-                linewidths=0.7,
-                label=f"{mapping} valid",
+                label=f"{mapping}",
                 alpha=0.9,
             )
 
@@ -121,8 +122,7 @@ def main():
                 sub_invalid["y"],
                 color=color,
                 marker="x",
-                s=70,
-                linewidths=1.8,
+                s=40,
                 label=f"{mapping} invalid",
                 alpha=0.9,
             )
@@ -142,29 +142,26 @@ def main():
         ax.scatter(
             highlight["x"],
             highlight["y"],
-            s=220,
+            s=100,
             facecolors="none",
             edgecolors=color,
-            linewidths=2.2,
             marker="o",
             zorder=5,
         )
 
-    ax.set_ylabel("Max Nonzeros",fontsize=20)
+    ax.set_ylabel("Max Nonzeros")
     ax.set_yscale("log")
 
-    ax.set_xticks(range(len(matrix_order)))
-    ax.set_xticklabels(matrix_order, rotation=45, fontsize=16)
+    ax.set_xticks(range(12))
+    ax.set_xticklabels(matrix_order, rotation=90)
 
     ax.grid(True, axis="y", linestyle="--", alpha=0.35)
-    ax.legend(ncol=3, fontsize=16, loc='upper left')
-    plt.tight_layout()
+    ax.legend(ncol=1, loc='upper left')
 
     
     output_path = "../figures/suite_sparse_manifest.pdf"
-    fig.savefig(output_path, dpi=200, bbox_inches="tight", format='pdf')
-    print(f"Wrote plot to {output_path}")
-    
+    style_axes(ax)
+    save(fig,output_path)
 
 
 if __name__ == "__main__":

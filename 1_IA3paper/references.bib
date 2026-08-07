@@ -99,3 +99,131 @@
 }
 
 
+@inproceedings{benchmarkllms,
+  author    = {Zhang, Zuoning and Parikh, Dhruv and Zhang, Youning and Prasanna, Viktor},
+  booktitle = {2024 IEEE High Performance Extreme Computing Conference (HPEC)},
+  title     = {Benchmarking the Performance of Large Language Models on the Cerebras Wafer Scale Engine},
+  year      = {2024},
+  volume    = {},
+  number    = {},
+  pages     = {1-7},
+  keywords  = {Training;Large language models;High performance computing;Computer architecture;Benchmark testing;Transformers;Natural language processing;Hardware;System-on-chip;Engines;large language models;transformers;wafer-scale engine;benchmarking;high performance computing},
+  doi       = {10.1109/HPEC62836.2024.10938519}
+}
+
+@article{cerebras_story,
+  author   = {Lauterbach, Gary},
+  journal  = {IEEE Micro},
+  title    = {The Path to Successful Wafer-Scale Integration: The Cerebras Story},
+  year     = {2021},
+  volume   = {41},
+  number   = {6},
+  pages    = {52-57},
+  keywords = {Transistors;Bandwidth;Clocks;Redundancy;Logic gates;Geometry;Semiconductor device modeling},
+  doi      = {10.1109/MM.2021.3112025}
+}
+
+@misc{wse_finite_volume,
+  title         = {Massively Distributed Finite-Volume Flux Computation},
+  author        = {Ryuichi Sai and Mathias Jacquelin and François P. Hamon and Mauricio Araya-Polo and Randolph R. Settgast},
+  year          = {2023},
+  eprint        = {2304.11274},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.MS},
+  url           = {https://arxiv.org/abs/2304.11274}
+}
+
+@misc{wse_md,
+  title     = {Breaking the {Molecular} {Dynamics} {Timescale} {Barrier} {Using} a {Wafer}-{Scale} {System}},
+  url       = {http://arxiv.org/abs/2405.07898},
+  abstract  = {Molecular dynamics (MD) simulations have transformed our understanding of the nanoscale, driving breakthroughs in materials science, computational chemistry, and several other fields, including biophysics and drug design. Even on exascale supercomputers, however, runtimes are excessive for systems and timescales of scientific interest. Here, we demonstrate strong scaling of MD simulations on the Cerebras Wafer-Scale Engine. By dedicating a processor core for each simulated atom, we demonstrate a 179-fold improvement in timesteps per second versus the Frontier GPU-based Exascale platform, along with a large improvement in timesteps per unit energy. Reducing every year of runtime to two days unlocks currently inaccessible timescales of slow microstructure transformation processes that are critical for understanding material behavior and function.},
+  language  = {en},
+  urldate   = {2024-09-10},
+  publisher = {arXiv},
+  author    = {Santos, Kylee and Moore, Stan and Oppelstrup, Tomas and Sharifian, Amirali and Sharapov, Ilya and Thompson, Aidan and Kalchev, Delyan Z. and Perez, Danny and Schreiber, Robert and Pakin, Scott and Leon, Edgar A. and Laros III, James H. and James, Michael and Rajamanickam, Sivasankaran},
+  month     = may,
+  year      = {2024},
+  note      = {arXiv:2405.07898 [physics]},
+  keywords  = {Computer Science - Distributed, Parallel, and Cluster Computing, Computer Science - Emerging Technologies, Physics - Computational Physics},
+  file      = {Santos et al. - 2024 - Breaking the Molecular Dynamics Timescale Barrier .pdf:/Users/maya/Zotero/storage/QNR77N3D/Santos et al. - 2024 - Breaking the Molecular Dynamics Timescale Barrier .pdf:application/pdf}
+}
+
+@misc{wse_stencil_jacquelin,
+  title     = {Massively scalable stencil algorithm},
+  url       = {http://arxiv.org/abs/2204.03775},
+  abstract  = {Stencil computations lie at the heart of many scientiﬁc and industrial applications. Unfortunately, stencil algorithms perform poorly on machines with cache based memory hierarchy, due to low reuse of memory accesses. This work shows that for stencil computation a novel algorithm that leverages a localized communication strategy eﬀectively exploits the Cerebras WSE-2, which has no cache hierarchy. This study focuses on a 25-point stencil ﬁnite-diﬀerence method for the 3D wave equation, a kernel frequently used in earth modeling as numerical simulation. In essence, the algorithm trades memory accesses for data communication and takes advantage of the fast communication fabric provided by the architecture. The algorithm —historically memory bound— becomes compute bound. This allows the implementation to achieve near perfect weak scaling, reaching up to 503 TFLOPs on WSE-2, a ﬁgure that only full clusters can eventually yield.},
+  language  = {en},
+  urldate   = {2024-09-18},
+  publisher = {arXiv},
+  author    = {Jacquelin, Mathias and Araya-Polo, Mauricio and Meng, Jie},
+  month     = apr,
+  year      = {2022},
+  note      = {arXiv:2204.03775 [cs]},
+  keywords  = {Computer Science - Mathematical Software},
+  file      = {Jacquelin et al. - 2022 - Massively scalable stencil algorithm.pdf:/Users/maya/Zotero/storage/3XUYW3PD/Jacquelin et al. - 2022 - Massively scalable stencil algorithm.pdf:application/pdf}
+}
+
+@misc{wse_mcpt,
+  title     = {Efficient {Algorithms} for {Monte} {Carlo} {Particle} {Transport} on {AI} {Accelerator} {Hardware}},
+  url       = {http://arxiv.org/abs/2311.01739},
+  doi       = {10.48550/arXiv.2311.01739},
+  abstract  = {The recent trend toward deep learning has led to the development of a variety of highly innovative AI accelerator architectures. One such architecture, the Cerebras Wafer-Scale Engine 2 (WSE-2), features 40 GB of on-chip SRAM, making it a potentially attractive platform for latency- or bandwidth-bound HPC simulation workloads. In this study, we examine the feasibility of performing continuous energy Monte Carlo (MC) particle transport on the WSE-2 by porting a key kernel from the MC transport algorithm to Cerebras's CSL programming model. New algorithms for minimizing communication costs and for handling load balancing are developed and tested. The WSE-2 is found to run 130 times faster than a highly optimized CUDA version of the kernel run on an NVIDIA A100 GPU -- significantly outpacing the expected performance increase given the difference in transistor counts between the architectures.},
+  urldate   = {2024-09-18},
+  publisher = {arXiv},
+  author    = {Tramm, John and Allen, Bryce and Yoshii, Kazutomo and Siegel, Andrew and Wilson, Leighton},
+  month     = nov,
+  year      = {2023},
+  note      = {arXiv:2311.01739 [cs]},
+  keywords  = {Computer Science - Distributed, Parallel, and Cluster Computing, Computer Science - Performance, D.1.3, J.2},
+  file      = {arXiv Fulltext PDF:/Users/maya/Zotero/storage/CTCGUTYU/Tramm et al. - 2023 - Efficient Algorithms for Monte Carlo Particle Tran.pdf:application/pdf;arXiv.org Snapshot:/Users/maya/Zotero/storage/NU9UT9H4/2311.html:text/html}
+}
+
+@misc{wse_fieldeq,
+  title      = {Disruptive {Changes} in {Field} {Equation} {Modeling}: {A} {Simple} {Interface} for {Wafer} {Scale} {Engines}},
+  shorttitle = {Disruptive {Changes} in {Field} {Equation} {Modeling}},
+  url        = {http://arxiv.org/abs/2209.13768},
+  doi        = {10.48550/arXiv.2209.13768},
+  abstract   = {We present a high-level and accessible Application Programming Interface (API) for the solution of field equations on the Cerebras Systems Wafer-Scale Engine (WSE) with over two orders of magnitude performance gain relative to traditional distributed computing approaches. The domain-specific API is called the WSE Field-equation API (WFA). The WFA outperforms OpenFOAM on NETL's Joule 2.0 supercomputer by over two orders of magnitude in time to solution. While this performance is consistent with hand-optimized assembly codes, the WFA provides an easy-to-use, high-level Python interface that allows users to form and solve field equations effortlessly. We report here the WFA programming methodology and achieved performance on the latest generation of WSE, the CS-2.},
+  urldate    = {2024-09-18},
+  publisher  = {arXiv},
+  author     = {Woo, Mino and Jordan, Terry and Schreiber, Robert and Sharapov, Ilya and Muhammad, Shaheer and Koneru, Abhishek and James, Michael and Van Essendelft, Dirk},
+  month      = sep,
+  year       = {2022},
+  note       = {arXiv:2209.13768 [cs]},
+  keywords   = {Computer Science - Distributed, Parallel, and Cluster Computing, Computer Science - Mathematical Software, Computer Science - Performance, J.2, Computer Science - Hardware Architecture, I.6},
+  file       = {arXiv Fulltext PDF:/Users/maya/Zotero/storage/4JDU4K74/Woo et al. - 2022 - Disruptive Changes in Field Equation Modeling A S.pdf:application/pdf;arXiv.org Snapshot:/Users/maya/Zotero/storage/Z6EC4RHP/2209.html:text/html}
+}
+
+@misc{wse_faststencil_rocki,
+  title     = {Fast {Stencil}-{Code} {Computation} on a {Wafer}-{Scale} {Processor}},
+  url       = {http://arxiv.org/abs/2010.03660},
+  doi       = {10.48550/arXiv.2010.03660},
+  abstract  = {The performance of CPU-based and GPU-based systems is often low for PDE codes, where large, sparse, and often structured systems of linear equations must be solved. Iterative solvers are limited by data movement, both between caches and memory and between nodes. Here we describe the solution of such systems of equations on the Cerebras Systems CS-1, a wafer-scale processor that has the memory bandwidth and communication latency to perform well. We achieve 0.86 PFLOPS on a single wafer-scale system for the solution by BiCGStab of a linear system arising from a 7-point finite difference stencil on a 600 X 595 X 1536 mesh, achieving about one third of the machine's peak performance. We explain the system, its architecture and programming, and its performance on this problem and related problems. We discuss issues of memory capacity and floating point precision. We outline plans to extend this work towards full applications.},
+  urldate   = {2024-09-18},
+  publisher = {arXiv},
+  author    = {Rocki, Kamil and Van Essendelft, Dirk and Sharapov, Ilya and Schreiber, Robert and Morrison, Michael and Kibardin, Vladimir and Portnoy, Andrey and Dietiker, Jean Francois and Syamlal, Madhava and James, Michael},
+  month     = oct,
+  year      = {2020},
+  note      = {arXiv:2010.03660 [cs]},
+  keywords  = {Computer Science - Distributed, Parallel, and Cluster Computing, Want to Read},
+  file      = {arXiv Fulltext PDF:/Users/maya/Zotero/storage/CWEFCL9X/Rocki et al. - 2020 - Fast Stencil-Code Computation on a Wafer-Scale Pro.pdf:application/pdf;arXiv.org Snapshot:/Users/maya/Zotero/storage/V4KCTGCQ/2010.html:text/html}
+}
+
+@misc{cerebras-blog,
+  author       = {James Wang},
+  title        = {Cerebras CS-3: The World's Fastest and Most Scalable AI Accelerator},
+  howpublished = {\url{https://www.cerebras.ai/blog/cerebras-cs3}},
+  year         = {2024},
+  month        = mar,
+  note         = {Cerebras Blog. Accessed: Aug. 6, 2026}
+}
+
+@misc{kundu2025comparisoncerebraswaferscaleintegration,
+  title         = {A Comparison of the Cerebras Wafer-Scale Integration Technology with Nvidia GPU-based Systems for Artificial Intelligence},
+  author        = {Yudhishthira Kundu and Manroop Kaur and Tripty Wig and Kriti Kumar and Pushpanjali Kumari and Vivek Puri and Manish Arora},
+  year          = {2025},
+  eprint        = {2503.11698},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.AR},
+  url           = {https://arxiv.org/abs/2503.11698}
+}
