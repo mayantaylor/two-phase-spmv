@@ -3,7 +3,7 @@ FIGDIR := ../figures
 
 COLLECTIVE_FIGURES := collectives_scaleB collectives_scaleP
 RAND_EVAL_FIGURES := compare-coo compare-coo-scalennz comm-accuracy
-SUITESPARSE_FIGURES := suite_sparse_manifest suite_sparse_gpu_comparison suite_sparse_comm_model  suite_sparse_gpu_eval 
+SUITESPARSE_FIGURES := suite_sparse_manifest suite_sparse_gpu_comparison suite_sparse_comm_model 
 MATRIX_SPACE_FIGURES := matrix-space-gpu matrix-space-speedup matrix-space-wse matrix-space-wse-mincomm matrix-space-wse-tp
 
 FIGURES := $(COLLECTIVE_FIGURES) $(SUITESPARSE_FIGURES) $(RAND_EVAL_FIGURES) $(MATRIX_SPACE_FIGURES)

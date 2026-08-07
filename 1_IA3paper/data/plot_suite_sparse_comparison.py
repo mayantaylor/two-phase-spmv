@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from style import figure, style_axes, save
+
 
 df = pd.read_csv('ss-results/080326coo-gpu_eval.csv')
 
@@ -49,7 +51,7 @@ df['speedup'] = df['gpu_mean_ms'] / df['max_time']
 df['nnz_capacity_ratio'] = df['nnz_max_capacity'] / (df['nnz'] / (df['nrows'] * df['ncols']))
 
 
-fig, ax1 = plt.subplots(figsize=(12, 5))
+fig, ax1 = figure("rect")
 ax2 = ax1.twinx()
 
 # Left axis: speedup bars rooted at 1
@@ -65,7 +67,7 @@ ax1.bar(
 )
 ax1.axhline(1, color='red', linestyle='--', linewidth=1)
 
-ax1.set_ylabel("WSE Speedup", color='tab:blue', fontsize=font_size)
+ax1.set_ylabel("WSE Speedup", color='tab:blue')
 ax1.tick_params(axis='y', labelcolor='tab:blue')
 
 # Left limits
@@ -82,10 +84,9 @@ ax2.plot(
     df['nnz_capacity_ratio'],
     color='k',
     marker='o',
-    linewidth=2,
     label='Load Imbalance Ratio'
 )
-ax2.set_ylabel("Load Imbalance Ratio", color='k', fontsize=font_size)
+ax2.set_ylabel("Load Imbalance Ratio", color='k')
 ax2.tick_params(axis='y', labelcolor='k')
 
 rmax = max(df['nnz_capacity_ratio'].max(), 1)
@@ -104,7 +105,6 @@ new_rmin = (frac * rtop - 1) / (frac - 1)
 ax2.set_ylim(new_rmin, rtop)
 
 # Shared x-axis
-ax1.set_xlabel("Matrix", fontsize=font_size)
 ax1.set_xticks(x)
 ax1.set_xticklabels(df['matrix_name'], rotation=45, ha='right')
 
@@ -113,7 +113,6 @@ lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
 ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
 
-plt.tight_layout()
-os.makedirs('../figures', exist_ok=True)
-plt.savefig('../figures/suite_sparse_gpu_comparison.pdf', format='pdf')
-plt.close()
+style_axes(ax1)
+save(fig,'../figures/suite_sparse_gpu_comparison.pdf')
+

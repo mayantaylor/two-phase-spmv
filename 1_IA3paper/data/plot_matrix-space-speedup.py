@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from style import figure, style_axes, save
 
 # -------------------------
 # Read data
@@ -72,7 +73,7 @@ heatmap = heatmap.sort_index().sort_index(axis=1)
 # -------------------------
 # Plot
 # -------------------------
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = figure("rect")
 norm = plt.Normalize(vmin=0, vmax=50)
 cmap = plt.get_cmap("viridis")
 
@@ -94,7 +95,6 @@ ax.set_yticklabels(heatmap.index)
 
 ax.set_xlabel("Matrix Rows")
 ax.set_ylabel("Matrix NNZ")
-ax.set_title("Best WSE Speedup over GPU")
 
 # Annotate
 
@@ -111,11 +111,11 @@ for i in range(heatmap.shape[0]):
                 f"{val:.2f}×",
                 ha="center",
                 va="center",
-                fontsize=8,
                 color="white" if luminance < 0.5 else "black",
             )
 cbar = fig.colorbar(im)
 cbar.set_label("Speedup over GPU")
 
-plt.tight_layout()
-plt.savefig("../figures/matrix-space-speedup.pdf", format='pdf')
+style_axes(ax)
+save(fig,'../figures/matrix-space-speedup.pdf')
+
