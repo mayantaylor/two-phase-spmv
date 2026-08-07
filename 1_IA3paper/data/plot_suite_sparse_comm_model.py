@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from style import figure, style_axes, save
+
+
 
 # Combine both dataframes
 combined_df = pd.read_csv('ss-results/080626results_full-coprimes.csv')
@@ -32,9 +35,8 @@ combined_df.sort_values('matrix_nrows', inplace=True)
 # Create figure with subplots
 x = np.arange(len(combined_df))
 width = 0.33
-fs = 20
 
-fig, ax1 = plt.subplots(figsize=(12, 8))
+fig, ax1 = figure("rect")
 ax2 = ax1.twinx()
 
 ax1.bar(
@@ -70,33 +72,31 @@ for bar, nrows, fmt, mapping in zip(bars, combined_df['nrows'], combined_df['for
     height = bar.get_height()
     ax1.text(bar.get_x() + bar.get_width()/2., height,
             f'{int(nrows)}\n{fmt}/{mapping}',
-            ha='center', va='bottom', fontsize=10, fontweight='bold')
+            ha='center', va='bottom', fontsize=4)
 
 ax2.plot(
     x,
     combined_df['nnz_max_capacity'],
     color='black',
     marker='o',
-    linewidth=2,
-    markersize=6,
+    markersize=2,
     label='Max NNZ capacity',
 )
 
-ax2.set_ylabel("Max NNZ Count", fontsize=fs)
-ax2.tick_params(axis='y', labelsize=16)
-ax2.legend(loc='center right', fontsize=fs)
+ax2.set_ylabel("Max NNZ Count",)
+ax2.tick_params(axis='y')
+ax2.legend(loc='center right',)
 
-ax1.legend(loc='upper left', fontsize=fs)
+ax1.legend(loc='upper left',)
 
-ax1.set_ylabel("Runtime (ms)", fontsize=fs)
-ax1.tick_params(axis='y', labelsize=16)
+ax1.set_ylabel("Runtime (ms)",)
+ax1.tick_params(axis='y')
+
+ax1.set_ylim(top=.03)
+ax2.set_ylim(top=600)
 
 # Shared x-axis
 ax1.set_xticks(x)
-ax1.set_xticklabels(combined_df['matrix_name'], rotation=45, ha='right', fontsize=fs)
-
-plt.tight_layout()
-
-os.makedirs('../figures', exist_ok=True)
-plt.savefig('../figures/suite_sparse_comm_model.pdf', format='pdf')
-plt.close()
+ax1.set_xticklabels(combined_df['matrix_name'], rotation=45, ha='right',)
+style_axes(ax1)
+save(fig,'../figures/suite_sparse_comm_model.pdf')

@@ -48,6 +48,7 @@ df['speedup'] = df['gpu_mean_ms'] / df['max_time']
 
 df['nnz_capacity_ratio'] = df['nnz_max_capacity'] / (df['nnz'] / (df['nrows'] * df['ncols']))
 
+
 fig, ax1 = plt.subplots(figsize=(12, 5))
 ax2 = ax1.twinx()
 

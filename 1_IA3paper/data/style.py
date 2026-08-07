@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 
 FONT = {
     "title": 11,
-    "label": 8,
-    "ticks": 7,
-    "legend": 8,
-    "annotation": 8,
+    "label": 6,
+    "ticks": 5,
+    "legend": 5,
+    "annotation": 4,
 }
 
 # ----------------------------------------------------------------------
