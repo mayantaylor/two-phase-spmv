@@ -76,7 +76,6 @@
 \maketitle
 \begin{abstract}
     Sparse matrix vector multiplication (SpMV) is a crucial component of many numerical workloads, from linear solvers to graph algorithms. It is characterized by irregular memory access and load imbalance, making it a challenging kernel in high-performance computing.
-
     We study SpMV on a novel hardware accelerator, the Cerebras Wafer-Scale Engine (WSE), which integrates almost 1 million processing elements on a single silicon wafer, promising extremely low-latency, high-bandwidth memory access. Exploiting these advantages requires the right algorithm and data placement, a difficult design problem for unstructured sparse workloads.
 
     We present the first algorithm for SpMV on the WSE and a companion communication model, evaluated across various matrix sizes and sparsity structures. We compare our WSE implementation to a CuSparse equivalent on the Nvidia H200, achieving speedup on both randomly generated and SuiteSparse matrices. This work informs the utility of dataflow architectures like the WSE for sparse workloads and directions for future work.
