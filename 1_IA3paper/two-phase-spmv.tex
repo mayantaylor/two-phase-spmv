@@ -436,7 +436,6 @@ Note that the number of nnzs corresponds exactly to the compute time.
 
 
 \subsection{GPU Comparison}
-\textcolor{red}{BIG IDEA 4. is the spmv performant? and compare to GPU}
 
 In this section, we evaluate the WSE SpMV algorithm against a CuSparse implementation on a single Nvidia H200.
 This GPU comparison serves as a baseline and reference datapoint, not a strict comparison for the sake of demonstrating superiority of one algorithm or architecture over the other. Such a comparison would necessitate a more comprehensive analysis of power draw differences and a pass over various GPU implementations, including possibly custom kernels. We note that the fashion in which the WSE algorithm loads the full matrix into fast local memory first might be more comparable to a GPU implementation that uses entirely shared memory. A more thorough comparison accounting for these points is left for future work.
@@ -476,8 +475,7 @@ Figure \ref{fig:gpu-vs-wse-varydensity} plots the same results from the RandomSu
 % TODO? maybe if there's need/space
 % To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
 
-Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE. \textcolor{green}{TODO: say more...}
-
+Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE, which is computed as the max to average ratio of nonzeros per PE. The load imbalance ratio corresponds roughly inversly with the speedup, suggesting that more detailed study of load balancing mappings would be valuable.
 
 \begin{figure}
     \centering
@@ -491,9 +489,23 @@ Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Fig
 
 
 \section{Conclusion}
+This work presented the first algorithm for sparse matrix-vector
+multiplication on the Cerebras Wafer-Scale Engine, built on a pair of
+1D collective primitives, along with a companion communication model
+derived from an updated performance model for those collectives. Across
+both randomly generated and SuiteSparse matrices, our implementation
+achieves substantial speedup over a cuSparse baseline on an Nvidia
+H200, though performance remains sensitive to load imbalance across
+PEs and, for denser matrices, becomes increasingly compute-bound. These results suggest that the WSE's
+on-chip mesh is a promising substrate for unstructured sparse workloads
+where good data placement is achievable, but also highlight that
+placement itself is the central open problem: our blocked, cyclic, and
+random mappings are simple relative to the more sophisticated
+partitioning strategies used in distributed and PIM contexts, and
+closing that gap is a natural direction for future work.
 
 \section{Acknowledgements}
-Thank you to Jon Berry and Kas Gabert at Sandia National Labs for their support learning the Tungsten model and discussions around mappings for SpMV. Additionally, thank you to Ilya
+This work benefitted from discussions with Jon Berry and Kas Gabert at Sandia National Labs, who provided support learning the Tungsten model the idea for the coprime cyclic mapping. Additionally, Ilya Sharapov from Cerebras was a valuable resource regarding the 1D collectives and modelling approaches.
 
 \bibliographystyle{plain}
 \bibliography{references}
