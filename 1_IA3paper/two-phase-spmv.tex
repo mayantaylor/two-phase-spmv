@@ -71,7 +71,7 @@
 \maketitle
 
 \begin{abstract}
-    Sparse matrix vector multiplication (SpMV) is a crutial component of many numerical workloads, from linear solvers to graph algorithms. SpMV is characterized by expensive, irregular memory access and computational load imbalance, making it one of a challenging and widely studied kernels in high-performance computing.
+    Sparse matrix vector multiplication (SpMV) is a crucial component of many numerical workloads, from linear solvers to graph algorithms. SpMV is characterized by expensive, irregular memory access and computational load imbalance, making it a challenging and widely studied kernel in high-performance computing.
 
     We study SpMV on a novel hardware accelerator, the Cerebras Wafer-Scale Engine (WSE). The WSE integrates almost 1 million processing elements on a single silicon wafer and promises extremely low-latency, high-bandwidth memory access. Exploiting these advantages, however, requires the right algorithm and data placement, presenting a difficult design problem particularly for unstructured sparse workloads.
 
@@ -79,7 +79,7 @@
 \end{abstract}
 
 \begin{IEEEkeywords}
-
+    sparse matrix-vector product, wafer-scale, dataflow architecture, communication modeling, load balancing
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -95,7 +95,7 @@ lives rather than requiring it to travel through a shared memory hierarchy.
 In this work, we develop an algorithm for SpMV on such a spatial dataflow accelerator, the Cerebras Wafer-Scale Engine (WSE). The WSE integrates a 2D PE mesh of almost 1 million PEs onto a massive square silicon area, and has demonstrated dramatic performance gains on the machine learning workloads it was originally designed for \cite{benchmarkllms,cerebras-blog,cerebras_story}.
 Recent work has also demonstrated exciting results for more general scientific workloads on the WSE, particularly for applications that map well to the WSE's spatial mesh. This includes stencil applications, molecular dynamics, finite volume computation, and fast fourier transforms \cite{wse_faststencil_rocki,wse_md,wse_mcpt,wse_stencil_jacquelin}.
 
-The existing scientific work on the WSE focuses primarily on problems with regular, structured data access. In this work, we begin exploration into more unstructured workloads on the WSE, using SpMV as our initial case study. While SpMV can be approached from a maix-free perspective in specific contexts and implemented using stencils, we do not make any assumptions about the matrix structure. Rather, we consider any general sparse matrix stored in COO and CSR formats.
+The existing scientific work on the WSE focuses primarily on problems with regular, structured data access. In this work, we begin exploration into more unstructured workloads on the WSE, using SpMV as our initial case study. While SpMV can be approached from a matrix-free perspective in specific contexts and implemented using stencils, we do not make any assumptions about the matrix structure. Rather, we consider any general sparse matrix stored in COO and CSR formats.
 
 We describe an algorithm for SpMV that can be broken down into two simple primitives on the WSE: 1D broadcast and reduce. We outline and analyze the different parameters to our algorithm and how they impact performance. Additionally, we present a corresponding communication model for SpMV. To provide deeper context for SpMV on the WSE, we present a thorough performance analysis and a comparison to an Nvidia H200 GPU.
 
@@ -139,7 +139,7 @@ PIM architectures exhibit similar characteristics to dataflow architectures, wit
         \hline
         $T_r$     & Ramp latency                         \\
         $S$       & PE-to-PE latency                     \\
-        $S_{ret}$ & Reticle crossing overhead            \\
+        $T_{ret}$ & Reticle crossing overhead            \\
         $C$       & Number of reticle boundaries crossed \\
         \hline
     \end{tabular}
@@ -153,16 +153,16 @@ Luczynski et al. originally present a set of 1D and 2D collectives implemented i
     \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
     \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
         between a PE's router and compute engine, and additional reticle
-        crossing overhead ($S_{ret}$) for a row of 3 PEs.}
+        crossing overhead ($T_{ret}$) for a row of 3 PEs.}
     \label{fig:ramp-latency}
 \end{figure}
 
 Luczynski et al. develop a performance model for the 1D reduction and broadcast based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrival at a PE's router to message arrival at the PE's compute engine, visualized in Figure \ref{fig:ramp-latency} for a row of three PEs, each with a local router and CE.
 
-As highlighted in Figure \ref{fig:ramp-latency}, we update the performance model to (1) explicitly label the single-hop latency between PEs as $S$, and (2) include reticle boundary crossing latencies $S_{ret}$.
-In accounting for $S_{ret}$ into our performance model, we require a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension (we find reticles to be approximately 64 PEs wide by 168 PEs tall).
+As highlighted in Figure \ref{fig:ramp-latency}, we update the performance model to (1) explicitly label the single-hop latency between PEs as $S$, and (2) include reticle boundary crossing latencies $T_{ret}$.
+In accounting for $T_{ret}$ into our performance model, we require a third additional parameter $C$ which denotes the number of reticle boundaries crossed. In practice, $C$ depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row), as the reticle size is different for each dimension (we find reticles to be approximately 64 PEs wide by 168 PEs tall).
 
-Luczynski et al. use a ramp latency $T_{ramp}$ of 2 cycles, while an earlier work from Tramm et al. finds 7 cycles. Through empirical evaluation, we find $T_r = 5$, $S = 2$, and $S_{ret} = 9$, and these values are used throughout this work.
+Luczynski et al. use a ramp latency $T_{ramp}$ of 2 cycles, while an earlier work from Tramm et al. finds 7 cycles. Through empirical evaluation, we find $T_r = 5$, $S = 2$, and $T_{ret} = 9$, and these values are used throughout this work.
 
 
 
@@ -173,7 +173,7 @@ Luczynski et al. use a ramp latency $T_{ramp}$ of 2 cycles, while an earlier wor
 
 % for our collectives Our pingpong results show a full round trip requires 14 cycles, which includes 2 ramp traversals from CE to router, 2 from router to CE, and 2 PE-to-PE traversals. In the additional context of our collective performance (discussed below), we estimate $T_r$ around 2 to 3 cycles, $S = 2$. Moving forward, we use $T_r = 2.5$ and note that it is possible the two ramp directions perform slightly differently, averaging out at $2.5$.
 
-% Additionally, the pingpong benchmark exposes a new latency factor not discussed in previous work. At reticle boundaries, an additional overhead of around 9 cycles is added to the PE-to-PE latency. We refer to this additional latency as $S_{ret}$ and factor it in to our updated performance modeling, in addition to a parameter $C$ which denotes the number of reticle boundaries crossed, and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
+% Additionally, the pingpong benchmark exposes a new latency factor not discussed in previous work. At reticle boundaries, an additional overhead of around 9 cycles is added to the PE-to-PE latency. We refer to this additional latency as $T_{ret}$ and factor it in to our updated performance modeling, in addition to a parameter $C$ which denotes the number of reticle boundaries crossed, and depends on both the length of the PE region $P$ and if the collective is vertical (column) or horizontal (row).
 \subsection{Performance Model}
 
 The performance model for both collectives can be broken into a latency term and a throughput term. The latency term describes how long it takes a single iteration of broadcast or reduce to complete, and the throughput term describes how closely multiple iterations can be pipelined.
@@ -330,7 +330,7 @@ This step requires the matrix itself, the size of the PE grid, the mapping strat
 The result of pre-processing is a set of binaries describing the data to be loaded on to the device.
 This pre-processing step is not measured in reported runtimes.
 
-\subsection{CuPy Comparison}
+\subsection{CuSparse Configuration}
 
 In our GPU performance comparisons, we use a 32-bit CuSparse SpMV implementation on a single H200.
 Specifically, we use the configuration $CUSPARSE\_SPMV\_COO\_ALG1$ which has demonstrated the best performance on SuiteSparse matrices in recent literature \cite{gao2024systematicliteraturesurveysparse}.
@@ -362,9 +362,9 @@ The choice of matrix storage format impacts the per-PE memory requirements and t
 \end{figure}
 
 \subsection{Model Evaluation}
-We evaluate our SpMV communication model using randomly generated matrices under the assumption of uniformly distributed nonzeros, and associated relative load balance. Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices on the accuracy of the communcation model.
+We evaluate our SpMV communication model using randomly generated matrices under the assumption of uniformly distributed nonzeros, and associated relative load balance. Section \ref{sec:layout} will explore the impact of load imbalance and more realistic matrices on the accuracy of the communication model.
 
-Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. The Figure also illustrates the compuatation time measured on the most overloaded PE for each run for an approximate understanding of the ratio of compute to communication. For the matrix with the fewest nonzeros, the communication model captures the SpMV performance almost perfectly. For more dense matrices, the left hand side of the figure shows that, as expected, when compute dominates the communication model is not a good performance predictor. As the compute per PE decreases towards the right of the figure, performance approaches the modeled result.
+Figure \ref{fig:scale-npes} compares the communication model to actual runtime for three different random matrices, varying the PE gridsize. The Figure also illustrates the computation time measured on the most overloaded PE for each run for an approximate understanding of the ratio of compute to communication. For the matrix with the fewest nonzeros, the communication model captures the SpMV performance almost perfectly. For more dense matrices, the left hand side of the figure shows that, as expected, when compute dominates the communication model is not a good performance predictor. As the compute per PE decreases towards the right of the figure, performance approaches the modeled result.
 
 \begin{figure}
     \centering
@@ -378,7 +378,7 @@ Figure \ref{fig:scale-npes} compares the communication model to actual runtime f
 \subsection{Grid-Size Selection}
 \label{sec:optmeshsize}
 The communication model becomes useful in practice if it can guide discovery of the best configuration for a given matrix.
-Particularly, we are interested in how the communicatoin model can help select the ideal PE grid size.
+Particularly, we are interested in how the communication model can help select the ideal PE grid size.
 
 We evaluate the RandomSuite matrices across various PE grid sizes to identify the optimal configuration for each. Figure \ref{fig:randsuite-wse-heatmap} visualizes the results from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
 
@@ -393,7 +393,7 @@ The bottom of Figure \ref{fig:randsuite-wse-heatmap} shows the best grid size pr
     \end{subfigure}
 
     \hspace{-.5cm}
-    \begin{subfigure}{0.3\textwidth}
+    \begin{subfigure}{0.36\textwidth}
         \includegraphics[width=\linewidth]{figures/matrix-space-wse-mincomm.pdf}
     \end{subfigure}
     \caption{Heatmap of RandSuite configurations space, showing the optimal square PE gridsize (top) against the communication model predictions (bottom). The top right entries of the evaluation space are infeasible to run on the WSE due to PE local memory constraints.}
@@ -411,7 +411,8 @@ the importance of other mapping schemes over the basic block decomposition.
 Figure \ref{fig:suite-sparse-parameters} illustrates an analysis pass, in which we compute the maximum nonzero count per PE for each matrix and mapping scheme. This gives us a sense of how each mapping performs simply based on the predicted load imbalance. The blocked
 mapping typically introduces the most imbalance, and cyclic typically the least.
 
-This initial evaluation is also valuable because it allows us to
+This initial evaluation is also valuable for understanding which matrices are feasible to map onto the hardware at all, given the per PE 48KB memory constraint. The configurations that don't fit in memory are plotted as "invalid" in Figure \ref{fig:suite-sparse-parameters}. A matrix is invalid when either the max number of nonzeros is too large or the number of rows is too large.
+
 Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to the hardware, as indicated by the filled circles in the figure. The highlighted points indicate the best configurations for each matrix at 512 PEs.
 
 \begin{figure}
@@ -505,7 +506,7 @@ partitioning strategies used in distributed and PIM contexts, and
 closing that gap is a natural direction for future work.
 
 \section{Acknowledgements}
-This work benefitted from discussions with Jon Berry and Kas Gabert at Sandia National Labs, who provided support learning the Tungsten model the idea for the coprime cyclic mapping. Additionally, Ilya Sharapov from Cerebras was a valuable resource regarding the 1D collectives and modelling approaches.
+This work benefitted from discussions with Jon Berry and Kas Gabert at Sandia National Labs, who provided support learning the Tungsten model and insight into the benefit of coprime PE grid dimensions for the cyclic mapping. Additionally, Ilya Sharapov from Cerebras was a valuable resource regarding the 1D collectives and modelling approaches. Lastly, this work is supported by the DOE CSGF and would not be possible without
 
 \bibliographystyle{plain}
 \bibliography{references}

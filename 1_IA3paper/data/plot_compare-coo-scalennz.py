@@ -76,7 +76,7 @@ ax1.tick_params(axis='y')
 ax1.tick_params(axis='x')
 
 # Shared x-axis
-ax1.set_xlabel("Maz NNZ")
+ax1.set_xlabel("Max NNZ")
 
 # Combine legends from both axes
 
