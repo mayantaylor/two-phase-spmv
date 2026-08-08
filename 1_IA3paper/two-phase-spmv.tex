@@ -50,7 +50,7 @@
     \else
         \thanks{This material is based upon work supported by the U.S. Department of
             Energy, Office of Science, Office of Advanced Scientific Computing Research, Department of
-            Energy Computational Science Graduate Fellowship under Award Number DE-SC0025528. This report was prepared as an account of work sponsored by an agency of the
+            Energy Computational Science Graduate Fellowship under Award Number DE-SC0025528 and Award Number DE-NA0003963. This report was prepared as an account of work sponsored by an agency of the
             United States Government. Neither the United States Government nor any agency thereof, nor
             any of their employees, makes any warranty, express or implied, or assumes any legal liability
             or responsibility for the accuracy, completeness, or usefulness of any information, apparatus,
@@ -60,7 +60,6 @@
             endorsement, recommendation, or favoring by the United States Government or any agency
             thereof. The views and opinions of authors expressed herein do not necessarily state or reflect
             those of the United States Government or any agency thereof
-
         }
     \fi
 }
@@ -86,21 +85,21 @@
 \end{IEEEkeywords}
 
 \section{Introduction}
-The sparse matrix-vector product (SpMV) is among the most heavily studied kernels in high-performance computing, but nonetheless remains difficult to accelerate: its performance is governed by memory access patterns dictated by the sparsity structure of the input, which varies widely across problem domains. As a result SpMV has seen extensive study including across many different hardware platforms, from CPUs and GPUs to distributed systems and processing-in-memory (PIM) architectures \cite{gao2024systematicliteraturesurveysparse,surveyspmv}.
+Sparse matrix-vector (SpMV) multiplication is a heavily studied kernels in high-performance computing, yet remains difficult to accelerate: its performance is governed by memory access patterns dictated by the sparsity structure of the input, which varies widely across problem domains. As a result SpMV has seen extensive study including across many different hardware platforms, from CPUs and GPUs to distributed systems and processing-in-memory (PIM) architectures \cite{gao2024systematicliteraturesurveysparse,surveyspmv}.
 
-The sensitivity to memory access cost demonstrated in SpMV highlights a rising consideration in computing, namely the growing gap between compute throughput and memory bandwidth. This motivates architectures that depart from the
+Sensitivity to the cost of memory access demonstrated in SpMV highlights a rising concern in computing, namely the growing gap between compute throughput and memory bandwidth. This motivates architectures that depart from the
 traditional model of a small number of powerful cores drawing from a shared, hierarchical
 memory. Spatial dataflow architectures instead distribute memory directly on chip via a 2D
 mesh of many simple processing elements (PEs), each paired with fast local memory and
 connected to its four cardinal neighbors. Under this model, computation happens where data already
-lives rather than requiring it to travel through a shared memory hierarchy.
+resides rather than requiring it to travel through a shared memory hierarchy.
 
 In this work, we develop an algorithm for SpMV on such a spatial dataflow accelerator, the Cerebras Wafer-Scale Engine (WSE). The WSE integrates a 2D PE mesh of almost 1 million PEs onto a massive square silicon area, and has demonstrated dramatic performance gains on the machine learning workloads it was originally designed for \cite{benchmarkllms,cerebras-blog,cerebras_story}.
 Recent work has also demonstrated exciting results for more general scientific workloads on the WSE, particularly for applications that map well to the WSE's spatial mesh. This includes stencil applications, molecular dynamics, finite volume computation, and fast fourier transforms \cite{wse_faststencil_rocki,wse_md,wse_mcpt,wse_stencil_jacquelin}.
 
 The existing scientific work on the WSE focuses primarily on problems with regular, structured data access. In this work, we begin exploration into more unstructured workloads on the WSE, using SpMV as our initial case study. While SpMV can be approached from a matrix-free perspective in specific contexts and implemented using stencils, we do not make any assumptions about the matrix structure. Rather, we consider any general sparse matrix stored in COO and CSR formats.
 
-We describe an algorithm for SpMV that can be broken down into two simple primitives on the WSE: 1D broadcast and reduce. We outline and analyze the different parameters to our algorithm and how they impact performance. Additionally, we present a corresponding communication model for SpMV. To provide deeper context for SpMV on the WSE, we present a thorough performance analysis and a comparison to an Nvidia H200 GPU.
+We describe an algorithm for SpMV that comprises of two primitives on the WSE: 1D broadcast and reduce. We outline and analyze the different parameters to our algorithm and how they impact performance. Additionally, we present a corresponding communication model for SpMV. To provide deeper context for SpMV on the WSE, we present a thorough performance analysis and a comparison to an Nvidia H200 GPU.
 
 
 % The big ideas:
@@ -494,15 +493,15 @@ Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Fig
 
 
 \section{Conclusion}
-This work presented the first algorithm for sparse matrix-vector
+The work presented is the first algorithm for sparse matrix-vector
 multiplication on the Cerebras Wafer-Scale Engine, built on a pair of
 1D collective primitives, along with a companion communication model
 derived from an updated performance model for those collectives. Across
 both randomly generated and SuiteSparse matrices, our implementation
-achieves substantial speedup over a cuSparse baseline on an Nvidia
+achieves substantial speedup over a CuSparse baseline on an Nvidia
 H200, though performance remains sensitive to load imbalance across
-PEs and, for denser matrices, becomes increasingly compute-bound. These results suggest that the WSE's
-on-chip mesh is a promising substrate for unstructured sparse workloads
+PEs and, for denser matrices, becomes increasingly compute-bound. These results suggest that the
+on-chip mesh of the WSE is a promising substrate for unstructured sparse workloads
 where good data placement is achievable, but also highlight that
 placement itself is the central open problem: our blocked, cyclic, and
 random mappings are simple relative to the more sophisticated
