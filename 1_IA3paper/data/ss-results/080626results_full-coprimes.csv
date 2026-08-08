@@ -70,3 +70,4 @@ delaunay_n23.073026.512x512.random,/projects/cerebras/sandbox/maytayl/suitespars
 dielFilterV2real.073026.256x256.blocked,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/dielFilterV2real.073026.256x256.blocked,,,,,,,,,,,,skipped,,,,
 dielFilterV2real.073026.256x256.random,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/dielFilterV2real.073026.256x256.random,,,,,,,,,,,,skipped,,,,
 dielFilterV2real.073026.384x384.blocked,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/dielFilterV2real.073026.384x384.blocked,,,,,,,,,,,,skipped,,,,
+radiation.080526.509x510.cyclic,/projects/cerebras/sandbox/maytayl/suitesparse-matrices/cache/radiation.080526.509x510.cyclic,509,510,223104,223104,59,9711.0,9181.0,1450.0,226.0,row,

@@ -38,35 +38,40 @@
     }
 }
 
+\newif\ifanon
+\anontrue   % <-- flip to \anonfalse for the camera-ready / non-anonymous version
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
 \title{A Two-Phase Dataflow Algorithm for SpMV on the Cerebras Wafer-Scale Engine\\
+    \ifanon
+    \else
+        \thanks{This material is based upon work supported by the U.S. Department of
+            Energy, Office of Science, Office of Advanced Scientific Computing Research, Department of
+            Energy Computational Science Graduate Fellowship under Award Number DE-SC0025528. This report was prepared as an account of work sponsored by an agency of the
+            United States Government. Neither the United States Government nor any agency thereof, nor
+            any of their employees, makes any warranty, express or implied, or assumes any legal liability
+            or responsibility for the accuracy, completeness, or usefulness of any information, apparatus,
+            product, or process disclosed, or represents that its use would not infringe privately owned
+            rights. Reference herein to any specific commercial product, process, or service by trade name,
+            trademark, manufacturer, or otherwise does not necessarily constitute or imply its
+            endorsement, recommendation, or favoring by the United States Government or any agency
+            thereof. The views and opinions of authors expressed herein do not necessarily state or reflect
+            those of the United States Government or any agency thereof
 
-    \thanks{This material is based upon work supported by the U.S. Department of
-        Energy, Office of Science, Office of Advanced Scientific Computing Research, Department of
-        Energy Computational Science Graduate Fellowship under Award Number DE-SC0025528. This report was prepared as an account of work sponsored by an agency of the
-        United States Government. Neither the United States Government nor any agency thereof, nor
-        any of their employees, makes any warranty, express or implied, or assumes any legal liability
-        or responsibility for the accuracy, completeness, or usefulness of any information, apparatus,
-        product, or process disclosed, or represents that its use would not infringe privately owned
-        rights. Reference herein to any specific commercial product, process, or service by trade name,
-        trademark, manufacturer, or otherwise does not necessarily constitute or imply its
-        endorsement, recommendation, or favoring by the United States Government or any agency
-        thereof. The views and opinions of authors expressed herein do not necessarily state or reflect
-        those of the United States Government or any agency thereof
-
-    }
+        }
+    \fi
 }
-
-\author{\IEEEauthorblockN{Maya Taylor, Luke Olson}
-    \IEEEauthorblockA{\textit{Siebel School of Computing and Data Science} \\
-        \textit{University of Illinois at Urbana-Champaign}\\
-        Champaign, IL USA \\
-        mayat4@illinois.edu, lukeo@illinois.edu}}
-
+\ifanon
+\else
+    \author{\IEEEauthorblockN{Maya Taylor, Luke Olson}
+        \IEEEauthorblockA{\textit{Siebel School of Computing and Data Science} \\
+            \textit{University of Illinois at Urbana-Champaign}\\
+            Champaign, IL USA \\
+            mayat4@illinois.edu, lukeo@illinois.edu}}
+\fi
 
 \maketitle
 
@@ -321,9 +326,10 @@ The randomly generated matrices are constructed based on matrix size and number 
 
 % To evaluate the impact of structure in this synthetic setting, we also generate a set of random matrices with a fixed number of nonzeros per row but varying distribution of those nonzeros, from tightly packed around the diagonal out to uniformly spread. This is referred to as the DiagSpectrumSuite.
 
+\input{figures/suite_sparse_matrices.tex}
+
 Our selection of SuiteSparse matrices is outlined in Table \ref{tab:suite_sparse_matrices}. We use these matrices to evaluate the behavior of our SpMV algorithm on more real world use-cases
 across a variety of applications, structures, and sizes. These test cases specifically pressure the load balancing capabilities of our mapping strategies.
-\input{figures/suite_sparse_matrices.tex}
 \subsection{WSE Pre-processing}
 Once a matrix is chosen, a pre-processing step generates the corresponding input files for the WSE.
 This step requires the matrix itself, the size of the PE grid, the mapping strategy (blocked, cyclic, random), and the format (COO, CSR).
@@ -426,12 +432,12 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
 \subsection{SuiteSparse Breakdown}
 Similarly to the parameter space evaluation in Figure \ref{fig:suite-sparse-parameters}, we did an analysis of the best mapping scheme across multiple PE grid sizes for the SuiteSparse matrices, including 256, 384, and 512 PE rows. This choice of range was guided by the optimal PE grid analysis for our RandomSuite matrices (Figure \ref{fig:randsuite-wse-heatmap}).
 
-Breakdown of performance by phase and by communication vs computation in Figure \ref{fig:suite-sparse-comm-model}
-Note that the number of nnzs corresponds exactly to the compute time.
+Figure \ref{fig:suite-sparse-comm-model} illustrates a breakdown of the total runtime into max computation time and modeled communication time. The max number of nonzeros per PE is overlaid on the plot to illustrate that the max computation time frequently corresponds with the max nonzeros.
+
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_comm_model.pdf}
-    \caption{Performance evaluation of SpMV with model breakdown on the WSE for various matrices from the SuiteSparse collection. For each matrix, the results were generated with the mapping with the best load balance ration. Then, the best result was chosen from 256, 384, and 512 PE rows, and COO vs CSR, with the choice indicated in black text on each bar.}
+    \caption{Performance evaluation of SpMV with model breakdown on the WSE for various matrices from the SuiteSparse collection. For each matrix, the results were generated with the mapping with the best load balance ratio. Then, the best result was chosen from 256, 384, and 512 PE rows, and COO vs CSR, with the choice indicated in black text on each bar.}
     \label{fig:suite-sparse-comm-model}
 \end{figure}
 
@@ -504,9 +510,11 @@ placement itself is the central open problem: our blocked, cyclic, and
 random mappings are simple relative to the more sophisticated
 partitioning strategies used in distributed and PIM contexts, and
 closing that gap is a natural direction for future work.
-
-\section{Acknowledgements}
-This work benefitted from discussions with Jon Berry and Kas Gabert at Sandia National Labs, who provided support learning the Tungsten model and insight into the benefit of coprime PE grid dimensions for the cyclic mapping. Additionally, Ilya Sharapov from Cerebras was a valuable resource regarding the 1D collectives and modelling approaches. Lastly, this work is supported by the DOE CSGF and would not be possible without
+\ifanon
+\else
+    \section{Acknowledgements}
+    This work benefitted from discussions with Jon Berry and Kas Gabert at Sandia National Labs, who provided support learning the Tungsten model and insight into the benefit of coprime PE grid dimensions for the cyclic mapping. Additionally, Ilya Sharapov from Cerebras was a valuable resource regarding the 1D collectives and modelling approaches. Lastly, this work is supported by the Department of Energy Computational Science Graduate Fellowship.
+\fi
 
 \bibliographystyle{plain}
 \bibliography{references}
