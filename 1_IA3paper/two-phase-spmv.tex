@@ -114,6 +114,14 @@ We describe an algorithm for SpMV that can be broken down into two simple primit
 %     \item evaluation: is the spmv performant? compare to GPU
 % \end{enumerate}
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
+    \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
+        between a PE's router and compute engine, and additional reticle
+        crossing overhead ($T_{ret}$) for a row of 3 PEs.}
+    \label{fig:ramp-latency}
+\end{figure}
 \section{Background}
 The WSE-3 is made up of around 900,000 PEs each with 48KB of local memory and a full wafer peak bandwidth of 21 PB/sec. Each PE has a router with connections to its four cardinal neighbors and a local general purpose compute engine (CE). While the maximum size of a conventional chip is limited by the size of a \textit{reticle}, the lithographic stencil used when printing circuits onto silicon, the WSE-3 enables wafer-scale fabrication by stitching reticles together to produce a chip roughly 22cm in dimension \cite{manufacturingwse,hu2023waferscalecomputingadvancementschallenges}. As discussed in Section \ref{sec:colls}, the resulting mesh achieves very low latency inter-PE communication with a slight overhead across reticle boundaries.
 
@@ -153,14 +161,6 @@ PIM architectures exhibit similar characteristics to dataflow architectures, wit
 
 Luczynski et al. originally present a set of 1D and 2D collectives implemented in CSL for the Cerebras WSE \cite{Luczynski_2024}. In this work, we focus on the 1D broadcast and reduce where each PE contributes exactly one vector element to each broadcast or reduce. These collectives are described by the first two parameters in Table \ref{tab:notation}, where $P$ denotes the number of PEs used in the collective and $B$ denotes the number of consecutive vectors that are pipelined through the collective. Note that the original presentation of this model understands $B$ differently, as the 'vector length', but both definitions refer to the same context.
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{figures/ramp_latency_fig.pdf}
-    \caption{PE-to-PE communication latency ($S$), ramp latency ($T_r$)
-        between a PE's router and compute engine, and additional reticle
-        crossing overhead ($T_{ret}$) for a row of 3 PEs.}
-    \label{fig:ramp-latency}
-\end{figure}
 
 Luczynski et al. develop a performance model for the 1D reduction and broadcast based on the parameters $P$ and $B$ and an additional variable $T_r$, the ramp latency. Specifically, $T_r$ captures the latency between message arrival at a PE's router to message arrival at the PE's compute engine, visualized in Figure \ref{fig:ramp-latency} for a row of three PEs, each with a local router and CE.
 
@@ -339,7 +339,7 @@ This pre-processing step is not measured in reported runtimes.
 \subsection{CuSparse Configuration}
 
 In our GPU performance comparisons, we use a 32-bit CuSparse SpMV implementation on a single H200.
-Specifically, we use the configuration $CUSPARSE\_SPMV\_COO\_ALG1$ which has demonstrated the best performance on SuiteSparse matrices in recent literature \cite{gao2024systematicliteraturesurveysparse}.
+Specifically, we use the configuration CUSPARSE\_SPMV\_COO\_ALG1 which has demonstrated the best performance on SuiteSparse matrices in recent literature \cite{gao2024systematicliteraturesurveysparse}.
 On our selection, this configuration achieves up to a 1.3x speedup over the default CuPy implementation. Each GPU datapoint includes 20 warmup iterations and an average timing over 50 subsequent trials.
 
 \section{Evaluation}
@@ -388,7 +388,7 @@ Particularly, we are interested in how the communication model can help select t
 
 We evaluate the RandomSuite matrices across various PE grid sizes to identify the optimal configuration for each. Figure \ref{fig:randsuite-wse-heatmap} visualizes the results from square matrices of dimension 8192 to 2097152 with the number of nnzs per row increasing along the y axis. As matrices get bigger and denser, the optimal grid size increases.
 
-The bottom of Figure \ref{fig:randsuite-wse-heatmap} shows the best grid size prediction based solely on the communication model. Since the communication model does not account for the density of the matrix, it produces only a single row heatmap. Overall, the communication model predicts the general trend as shown in the main result heatmap, but for large nonzero counts the accuracy diminishes. In practice, this suggests that the communication model alone may not be a good prediction tool, unless suplemented by a corresponding computation model.
+The bottom of Figure \ref{fig:randsuite-wse-heatmap} shows the best grid size prediction based solely on the communication model. Since the communication model does not account for the density of the matrix, it produces only a single row heatmap. Overall, the communication model predicts the general trend as shown in the main result heatmap, but for large nonzero counts the accuracy diminishes. In practice, this suggests that the communication model alone may not be a good prediction tool, unless supplemented by a corresponding computation model.
 
 \begin{figure}
     \centering
@@ -424,7 +424,7 @@ Of the 12 matrices in our random suite sparse selection, only 7 can be mapped to
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{figures/suite_sparse_manifest.pdf}
-    \caption{Parameter space evalutation of suite-sparse selection using PE grid dimension 512.}
+    \caption{Parameter space evaluation of suite-sparse selection using PE grid dimension 512.}
     \label{fig:suite-sparse-parameters}
 \end{figure}
 
@@ -447,9 +447,9 @@ Figure \ref{fig:suite-sparse-comm-model} illustrates a breakdown of the total ru
 In this section, we evaluate the WSE SpMV algorithm against a CuSparse implementation on a single Nvidia H200.
 This GPU comparison serves as a baseline and reference datapoint, not a strict comparison for the sake of demonstrating superiority of one algorithm or architecture over the other. Such a comparison would necessitate a more comprehensive analysis of power draw differences and a pass over various GPU implementations, including possibly custom kernels. We note that the fashion in which the WSE algorithm loads the full matrix into fast local memory first might be more comparable to a GPU implementation that uses entirely shared memory. A more thorough comparison accounting for these points is left for future work.
 
-We first evaluate the GPU across our RandomSuite space varying the number of nonzeros per row and the number of rows. Figure \ref{fig:gpu-vs-wse-varydensity} shows the throughput achieved for increasing matrix size on the H200 and WSE. The heatmap in Figure \ref{fig:randomsuite-speedup} shows the speedup achieved by the WSE over the GPU for each of the RandomSuite matrices. Note that the WSE results here use the optimal configuration found in section \ref{sec:optmeshsize}.
+We first evaluate the GPU across our RandomSuite space varying the number of nonzeros per row and the number of rows. Figure \ref{fig:gpu-vs-wse-varydensity} shows the throughput achieved for increasing matrix size on the H200 and WSE. The heatmap in Figure \ref{fig:randomsuite-speedup} shows the speedup achieved by the WSE over the GPU for each of the RandomSuite matrices. Note that the WSE results here use the optimal configuration found in section \ref{sec:optmeshsize}. The performance trends here suggest that if the SpMV implementation could be updated to address the memory constraint limits, the speedup may continue to scale.
 
-The performance trends here suggest that if the SpMV implementation could be updated to address the memory constraint limits, the speedup may continue to scale.
+The scaling properties of both architectures are further investigated in Figure \ref{fig:gpu-vs-wse-varydensity}, which plots the RandomSuite results but looks at how the throughput varies with the number of rows and density of the matrices. The two platforms diverge in how throughput responds to matrix size. On the GPU, throughput for different nonzero densities converges toward a common bandwidth as $N$ grows. At small matrix sizes, the dense matrices perform substantially better, but as the matrix size grows the impact of density diminishes. The WSE shows the opposite trend: throughput continues to climb with $N$ across all densities, and denser matrices pull further ahead rather than converging. This gives some intuition for the growing speedup with matrix size observed in Figure \ref{fig:randomsuite-speedup}, particularly for dense matrices: rather than saturating a shared bandwidth ceiling, the WSE's distributed on-chip memory lets throughput scale with the size of the problem, at least up to the local memory capacity limits discussed in Section \ref{sec:optmeshsize}.
 
 \begin{figure}
     \centering
@@ -458,7 +458,7 @@ The performance trends here suggest that if the SpMV implementation could be upd
     \label{fig:randomsuite-speedup}
 \end{figure}
 
-Figure \ref{fig:gpu-vs-wse-varydensity} plots the same results from the RandomSuite but looks at how the GPU and WSE performance scale with the number of rows and density of the matrices. WSE results are generated with COO.
+
 
 \begin{figure*}[htbp]
     \centering
@@ -482,7 +482,7 @@ Figure \ref{fig:gpu-vs-wse-varydensity} plots the same results from the RandomSu
 % TODO? maybe if there's need/space
 % To evaluate the impact of matrix structure, we evaluate both architectures and algorithms on our DiagSpectrumSuite matrices. \textcolor{green}{TODO: diag spectrum results and figures!}
 
-Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE, which is computed as the max to average ratio of nonzeros per PE. The load imbalance ratio corresponds roughly inversly with the speedup, suggesting that more detailed study of load balancing mappings would be valuable.
+Lastly, we compare against the GPU on our selection of SuiteSparse matrices. Figure \ref{fig:suite-sparse-gpu-comp} illustrates the speedup achieved by the WSE over the GPU for each matrix, as well as the load imbalance ratio on the WSE, which is computed as the max to average ratio of nonzeros per PE. The load imbalance ratio corresponds roughly inversely with the speedup, suggesting that more detailed study of load balancing mappings would be valuable.
 
 \begin{figure}
     \centering
